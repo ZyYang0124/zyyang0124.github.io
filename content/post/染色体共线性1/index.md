@@ -5,6 +5,7 @@ slug: synteny-analysis
 date: 2026-01-12 15:52:00+0000
 image: cover.jpg
 categories:
+    - 演化生物学
     - 生信
 tags:
     - 共线性
