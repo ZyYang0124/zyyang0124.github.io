@@ -7,7 +7,8 @@ image: cover.jpg
 categories:
     - 生信
 tags:
-    - 共线性 基因组 
+    - 共线性
+    - 基因组 
 weight: 1       # You can add weight to some posts to override the default sorting (date descending)
 ---
 
