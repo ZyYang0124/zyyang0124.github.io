@@ -19,7 +19,7 @@ subtitle = "惟江上之清风与山间之明月"
 [sidebar.avatar]
 enabled = true
 local = true
-src = "img/avatar.jpg"
+src = "img/avatar_y.jpg"
 
 [article]
 headingAnchor = false
