@@ -2,7 +2,7 @@
 title: 染色体共线性分析
 description: 以两种跳蛛为例进行的染色体共线性分析初尝试
 slug: hello-world
-date: 2026-01-13 15:52:00+0000
+date: 2026-01-12 15:52:00+0000
 image: cover.jpg
 categories:
     - 生信
