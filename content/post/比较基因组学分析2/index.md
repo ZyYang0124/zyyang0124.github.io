@@ -1,5 +1,5 @@
 ---
-title: 基于 CAFE 的基因家族分析
+title: 比较基因组学分析2：基因家族的扩张与收缩
 description: 本流程旨在从 CAFE5 输出结果中识别显著扩张或收缩的基因家族，通过树上标注和统计分析，直观展示显著扩张/收缩家族在系统发育树上的分布特征。
 slug: cafe-genefamily1
 date: 2025-11-21 00:00:00+0000
@@ -114,7 +114,7 @@ CAFE5的运行命令如下：
 - 每个节点分别统计：所有显著家族的扩张数，所有显著家族的收缩数；
 - 最后将其 map 到树上：写入 cleaned_tree_sig0.05_only.txt
 ---
-    #sig0.05_change_map_to_tree.py
+    cat > sig0.05_change_map_to_tree.py << 'EOF'
     #!/usr/bin/env python3
     import re
     import pandas as pd
@@ -187,6 +187,9 @@ CAFE5的运行命令如下：
         f.write(tree)
 
     print("写入完成：cleaned_tree_sig0.05_only.txt")
+    EOF
+
+    python3 sig0.05_change_map_to_tree.py 
 ---
 
 ### 5.2 过滤每个节点基因家族的扩张/收缩数目文件中不显著的基因家族
@@ -194,7 +197,7 @@ CAFE5的运行命令如下：
 - 以 Gamma_family_results.txt 里显著家族为准，从 Gamma_change.tab 中去掉不显著家族；
 - 输出一个新的 Gamma_change_sig0.05.tsv。
 ---
-    #sig0.05_change_tsv.py
+    cat > sig0.05_change_tsv.py << 'EOF'
     #!/usr/bin/env python3
     import pandas as pd
 
@@ -228,4 +231,7 @@ CAFE5的运行命令如下：
     df_sig.to_csv(output_file, sep="\t", index=False)
 
     print(f"完成，已生成 {output_file}，仅包含显著家族")
+    EOF
+
+    python3 sig0.05_change_tsv.py
 ---
