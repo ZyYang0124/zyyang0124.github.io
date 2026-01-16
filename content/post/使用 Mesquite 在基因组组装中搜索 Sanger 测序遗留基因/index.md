@@ -38,7 +38,6 @@ tags:
 
 ### 2.2 将 FASTA 文件转换为 BLAST 可用数据库
 - 在 Mesquite 的 Log 窗口中，选择菜单：`Utilities > Make BLASTable Files from FASTA`
-![](/img/2025-12-17-1.png)
 - 在弹出的对话框中，选择包含组装 FASTA 文件的目录。
 - Mesquite 将为该目录中的每个 FASTA 文件生成对应的 BLAST 数据库。
 
@@ -52,7 +51,6 @@ tags:
 
 ### 2.5 启动本地 BLAST 搜索
 - 选择菜单：`Matrix > Search > Top BLAST Matches`，然后选择 `BLAST Local Server`。
-![](/img/2025-12-17-2.png)
 - 点击 OK，将弹出 BLAST 配置对话框。
   
 ### 2.6 配置 BLAST 搜索参数
@@ -65,14 +63,14 @@ tags:
   - 某些组装软件（如 CLC）在 FASTA 序列标题中包含物种名，例如：>MySpecies Specimen 2 | NODE 348830...
   - 而其他软件（如 SPAdes）则不包含，例如：>NODE 348830...
   - 如果您的组装 FASTA 标题中不包含物种名，建议勾选 `Prepend database name to hit names`（在命中序列名前添加数据库名）。因为数据库名源自 FASTA 文件名，而文件名通常包含物种信息，此举有助于后续识别来源。
-![](/img/2025-12-17-3.png)
+
 
 ### 2.7 设置比对与序列导入选项
 - 建议勾选 `reverse complement if needed and align imported sequences`（如需则反向互补，并对导入序列进行比对），以便直观查看结果。
 - 是否允许内部插入空位（gaps）？
   - 如果目标序列为蛋白质编码区（如 COI 基因），不要勾选 `allow new internal gaps`；
   - 如果目标序列包含非编码区，则建议勾选此项。
-![](/img/2025-12-17-4.png)
+
 
 ### 2.8 执行 BLAST 搜索并导入结果
 - 点击 OK 后，Mesquite 将调用 BLAST 对指定数据库进行搜索；
@@ -87,7 +85,6 @@ tags:
 - 合并方式有两种入口：
   - 在 `Character Matrix Editor` 中：`Matrix > Taxon Utilities > Merge Taxa`
   - 或在 `List of Taxa` 窗口中：`List > Taxon Utilities > Merge Taxa`
-![](/img/2025-12-17-5.png)
 - 手动合并选定行
   - 先在矩阵中选中需要合并的多行；
   - 选择 `Taxon Utilities > Merge Selected Taxa`；
