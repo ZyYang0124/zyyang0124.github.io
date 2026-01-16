@@ -93,7 +93,7 @@ tags:
   - 选择 `Taxon Utilities > Merge Selected Taxa`；
   - 系统将提供多种合并策略供选择。
 - 按名称自动匹配合并
-  - 选择 T`axon Utilities > Merge Taxa by Name Matching`；
+  - 选择 `Taxon Utilities > Merge Taxa by Name Matching`；
   - 系统会弹出对话框，询问名称中哪些部分需一致才能视为同一物种（例如前缀、文件名主体等）。
 - 选择合并策略
   - 无论采用手动还是自动匹配方式，下一步都会出现合并选项对话框。
