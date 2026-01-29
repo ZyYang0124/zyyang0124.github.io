@@ -342,8 +342,8 @@ tags:
     scale_size(range = c(2, 8)) + 
     scale_colour_gradient(low = "#52c2eb", high = "#EA4F30") + 
     theme_bw() + 
-    labs(x = 'Fold Enrichment', y = 'KEEG Terms',  # 自定义x、y轴、标题内容
-        title = 'Enriched KEEG Terms') + 
+    labs(x = 'GeneRatio', y = 'KEGG Terms',  # 自定义x、y轴、标题内容
+        title = 'Enriched KEGG Terms') + 
     labs(color = expression(-log[10](pvalue))) + 
     theme(legend.title = element_text(size = 8), legend.text = element_text(size = 14)) + 
     theme(axis.title.y = element_text(margin = margin(r = 50)), axis.title.x = element_text(margin = margin(t = 20))) + 
