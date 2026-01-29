@@ -3,7 +3,7 @@ title: 基于 CAFE 的基因家族回溯与功能注释
 description: 本流程旨在从 CAFE 输出结果 中识别显著扩张或收缩的基因家族，并通过回溯至基因家族构建与功能注释阶段，确定这些家族的成员组成与潜在功能，从而为基因家族进化分析提供生物学解释。
 slug: cafe-genefamily
 date: 2025-11-04 00:00:00+0000
-image: 2.jpg
+image: 1.jpg
 categories:
     - 演化生物学
 tags:

@@ -1,7 +1,7 @@
 ---
 title: 使用 Mesquite 在基因组组装中搜索 Sanger 测序遗留基因
 description: 本流程基于 Mesquite 4.01
-slug: cafe-genefamily
+slug: bycatch
 date: 2025-11-04 00:00:00+0000
 image: 1.jpg
 categories:
