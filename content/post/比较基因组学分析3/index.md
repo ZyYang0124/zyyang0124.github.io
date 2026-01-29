@@ -2,7 +2,7 @@
 title: 比较基因组学分析3：节点扩张/收缩基因家族富集分析
 description: 
 slug: comparativegemomics3
-date: 2026-1-29 00:00:00+0000
+date: 2026-01-29 00:00:00+0000
 image: 1.jpg
 categories:
     - 演化生物学
