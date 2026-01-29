@@ -13,15 +13,17 @@ tags:
     - 演化
 ---
 
-在[比较基因组学分析2：CAFE5 基因家族分析](https://zyyang0124.github.io/p/cafe-genefamily1/)中，我们探讨了基于 cafe5 的基因家族扩张和收缩的分析。
+在[比较基因组学分析2：CAFE5 基因家族分析](https://zyyang0124.github.io/p/cafe-genefamily1/)中，我们探讨了基因家族扩张和收缩的分析。
+
+本博文以 node 7 为例，进行功能富集分析。
 
 ![](2.png)
 
-本博文以 node 7 为例，进行节点特异的功能富集分析。
+
 
 ## 1. 获取目的基因
 
-这一部分的关键在于目标基因与背景基因的合理选择。目标基因通常指在该节点显著扩张的基因家族中所包含的全部物种基因。背景基因一般选取该节点对应的所有 Orthogroup，用于构建适合该节点的参考基因集合。
+本部分的关键在于合理选择目标基因与背景基因。其中，**目标基因**通常指在该演化节点上显著扩张的基因家族所包含的所有物种中的对应基因；**背景基因**则一般选取该节点所涵盖的全部 Orthogroup，用以构建一个适用于该演化节点的参考基因集。
 
 ### 1.1 获取 node7 显著扩张的基因
     
@@ -33,7 +35,7 @@ tags:
     sed "s/ /\\n/g" | sed "s/\t/\\n/g" | sed "s/,//g" | \
     sort | uniq > node7.expand.genes
 
-### 1.2 node7 背景基因的选择
+### 1.2 选择 node7 的背景基因
 
     # node7中存在基因的orthogroupsID
     awk 'NR!=1 && $8>0 {print $0}' Gamma_count.tab | cut -f1 > node7.orthogroups
@@ -41,7 +43,7 @@ tags:
     grep -f node7.orthogroups Orthogroups.tsv | cut -f9 | \
     sed "s/ /\n/g" | sed "s/\t/\n/g" | sed "s/,//g" | sort | uniq > node7.genes
 
-`node7.genes` 和 `node7.expand.genes` 就是进行富集分析所需的基因ID，接下来就是构建背景基因的GO和KEGG注释。由于是无参物种，所以需要自己构建。
+`node7.genes` 和 `node7.expand.genes` 即为富集分析所需的目标基因 ID。由于涉及无参物种，需自行构建背景基因集的 GO 与 KEGG 功能注释。
 
 ## 2. 构建背景基因的 GO 和 KEGG 注释
 ### 2.1 GO 和 KEGG 注释
@@ -54,13 +56,13 @@ tags:
         > node7.fa
 
     /home/salticidae/install/eggnog-mapper-2.1.12/emapper.py \
-    -m diamond -i node7.fa -o node7 --cpu 16
+    -m diamond -i node7.fa -o node7 --cpu 50
 
-现在，我们得到`node7.emapper.annotations`文件，将前三行内容和 “#” 删除。
+现在，我们得到`node7.emapper.annotations`文件，**需删除其前三行和所有的 “#”**。
 
 ### 2.2 GO 注释库构建
 
-首先需要获取 GO 的基础注释文件，可从以下地址下载： http://purl.obolibrary.org/obo/go/go-basic.obo 下载完成后，应根据分析需求对该文件进行整理与格式修饰，以构建适用于本物种的 GO 注释库。
+首先要获取 [GO 的基础注释文件](http://purl.obolibrary.org/obo/go/go-basic.obo)。下载完成后，根据分析需求对该文件进行整理与格式修饰，以构建适用于本物种的 GO 注释库。
 
     wget https://current.geneontology.org/ontology/go-basic.obo
     # 1. 提取GO ID
@@ -74,10 +76,11 @@ tags:
 
 ### 2.3 KEGG 注释库构建
 
-构建 KEGG 注释库需要获取 KEGG 的层级信息文件。可从以下链接下载 ko00001.json。下载地址https://www.genome.jp/kegg-bin/get_htext?ko00001。
+构建 KEGG 注释库需要获取 KEGG 的层级信息文件：下载 [ko00001.json](https://www.genome.jp/kegg-bin/get_htext?ko00001)，下载后将其整理为可解析的本地 KEGG 注释文件，以便后续提取 KO 层级关系并用于富集分析。
+
 ![](3.png)
 
-下载后将其整理为可解析的本地 KEGG 注释文件，以便后续提取 KO 层级关系并用于富集分析。
+
 
     # nano kegg_parser.R
 
@@ -142,7 +145,7 @@ tags:
 
 ### 2.4 构建背景注释
 
-背景注释的构建核心在于将自身基因集与前面整理好的 GO 或 KEGG 注释库进行匹配。 通过将 Orthogroup 中的所有基因与注释信息对接，可以生成适用于富集分析的背景基因注释表，为后续统计检验提供可靠的参考基准。
+背景注释构建的核心在于将本研究中的基因集与前述整理好的 GO 和 KEGG 注释库进行匹配。通过将各 Orthogroup 中的所有基因与其对应的注释信息关联，可生成适用于富集分析的背景基因注释表，为后续的统计检验提供可靠的参考基准。
 
     # nano GO_KEGG_annotation.R
     # 加载必要的库
@@ -206,7 +209,7 @@ tags:
 
 ### 2.5 GO 和 KEGG 富集分析
 
-使用前面构建的 `node7_GO.rda`、`node7_KEGG.rda`，以及目标基因文件 `node7.expand.genes`，即可开展该节点的 GO 与 KEGG 富集分析。 后续作图通常只需选择前 10 或前 20 个条目，具体筛选范围可根据实际需求调整。
+使用前面构建的 `node7_GO.rda`、`node7_KEGG.rda`，以及目标基因文件 `node7.expand.genes`，即可开展该节点的 GO 与 KEGG 富集分析。后续作图通常只需选择前 10 或前 20 个条目，具体筛选范围可根据实际需求调整。
 
     ## STEP3: GO富集分析
     # 目标基因列表(全部基因)
@@ -251,7 +254,7 @@ tags:
 
 **清理与注意事项（修改后文本）** 
 
-在输出的富集结果文件中，需要注意两类问题并进行处理。第一类是重复条目：有些 GO/KEGG 条目在表中出现多次，但其 geneID 列完全相同。遇到这种情况，应保留一条并删除其余重复条目，以避免后续统计与作图时重复计数。第二类是功能背景不匹配的条目：部分显著富集的条目可能与动物相关，而目标研究对象并非动物，这类条目应按实际生物学意义酌情剔除或标注为“可疑/需人工确认”。
+在输出的富集结果文件中，需要注意两类问题并进行处理。第一类是重复条目：有些 GO/KEGG 条目在表中出现多次，但其 geneID 列完全相同。遇到这种情况，应保留一条并删除其余重复条目，以避免后续统计与作图时重复计数。第二类是功能背景不匹配的条目：部分显著富集的条目可能与植物有关，而目标研究对象并非植物，这类条目应按实际生物学意义酌情剔除或标注为“可疑/需人工确认”。
 
 ## 3. 富集结果可视化
 
@@ -267,7 +270,7 @@ tags:
     library(dplyr)
     library(ggrepel)
     GO <- arrange(pathway, pathway[, 6])
-    GO_dataset <- GO[1:20, ]
+    GO_dataset <- GO[1:20, ] # 20即为需要可视化的数量
     # 按照PValue从低到高排序[升序]
     GO_dataset$Description <- factor(GO_dataset$Description, levels = unique(rev(GO_dataset$Description)))
     GO_dataset$GeneRatio <- as.numeric(GO_dataset$GeneRatio)
