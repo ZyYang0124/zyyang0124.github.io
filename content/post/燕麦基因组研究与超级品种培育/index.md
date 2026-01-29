@@ -3,7 +3,7 @@ title: 燕麦基因组研究与超级品种培育
 description: 此文为基于 qianwen3 对河北大学杜会龙教授关于其课题组在燕麦属基因组学研究进展的讲座作的系统性总结。
 slug: oat-genome
 date: 2025-10-28 00:00:00+0000
-image: 2.jpg
+image: 1.jpg
 categories:
     - 演化
 tags:
