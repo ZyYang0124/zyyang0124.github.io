@@ -1,0 +1,1024 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>演化生物学 on Yonder Mountain</title><link>https://zyyang0124.github.io/categories/%E6%BC%94%E5%8C%96%E7%94%9F%E7%89%A9%E5%AD%A6/</link><description>Recent content in 演化生物学 on Yonder Mountain</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 29 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://zyyang0124.github.io/categories/%E6%BC%94%E5%8C%96%E7%94%9F%E7%89%A9%E5%AD%A6/index.xml" rel="self" type="application/rss+xml"/><item><title>染色体共线性分析</title><link>https://zyyang0124.github.io/p/synteny-analysis/</link><pubDate>Mon, 12 Jan 2026 15:52:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/synteny-analysis/</guid><description>&lt;img src="https://zyyang0124.github.io/p/synteny-analysis/cover.jpg" alt="Featured image of post 染色体共线性分析" /&gt;&lt;h2 id="染色体共线性分析"&gt;染色体共线性分析
+&lt;/h2&gt;&lt;p&gt;以 &lt;em&gt;Siler cupreus&lt;/em&gt; 和 &lt;em&gt;Portia taiwannica&lt;/em&gt; (两种跳蛛) 为例&lt;/p&gt;
+&lt;h2 id="1-物种间共线性分析"&gt;1. 物种间共线性分析
+&lt;/h2&gt;&lt;p&gt;数据要求：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;去冗余之后的蛋白质序列 *.faa&lt;/li&gt;
+&lt;li&gt;基因组注释文件 *.gff&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;软件要求：MCScanX、mmseqs&lt;/p&gt;
+&lt;h3 id="11-blast"&gt;1.1 blast
+&lt;/h3&gt;&lt;p&gt;数据初步处理：只保留 gene ID，去掉 -RA 后的所有内容&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sed 's/-RA.*//' siler.faa &amp;gt; siler_filitered.fa
+sed 's/-RA.*//' portia.faa &amp;gt; portia_filitered.fa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id="111-基于蛋白序列构建blast数据库"&gt;1.1.1 基于蛋白序列构建blast数据库
+&lt;/h4&gt;&lt;pre&gt;&lt;code&gt;mmseqs createdb siler_filitered.fa portia_filitered.fa all_mmseqs.db
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id="112-使用目标物种的-cdspepfaafa-序列与此前构建的数据库进行比对结果文件为blast"&gt;1.1.2 使用目标物种的 cds/pep/faa/fa 序列与此前构建的数据库进行比对，结果文件为*.blast
+&lt;/h4&gt;&lt;pre&gt;&lt;code&gt;mmseqs easy-search all.fa all_mmseqs.db all.blast tmp -s 7.5 --alignment-mode 3 --num-iterations 4 -e 1e-5 --max-accept 5 --threads 70
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;第三列序列相似性需要百分制，如果全都小于1的话，需扩大100倍&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;awk -F'\t' 'BEGIN{OFS=&amp;quot;\t&amp;quot;} {$3=sprintf(&amp;quot;%.2f&amp;quot;, $3*100); print}' all.blast &amp;gt; all_m8.blast
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;最终数据库格式如下：（gene ID 需要简化, 可参考后文替换命令）&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;PT00001424 PT00001424 100 278 0 0 1 278 1 278 2.946E-177 548
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="12-bed-文件准备"&gt;1.2 *.bed 文件准备
+&lt;/h3&gt;&lt;p&gt;要求：每个基因保留一个蛋白序列（通常为主转录本）&lt;/p&gt;
+&lt;h4 id="121-将gff文件转换成mcscanx所需格式该命令需根据具体物种调整"&gt;1.2.1 将.gff文件转换成MCScanX所需格式（该命令需根据具体物种调整）
+&lt;/h4&gt;&lt;p&gt;MCScanX 不需要原始*gff文件的所有内容，只需要提取其中的第 1, 9, 4, 5 列，其中第 9 列只提取 gene ID 即可&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;awk -F &amp;quot;\t&amp;quot; '{a=substr($9,4,25)}$0~/gene/{print $1 &amp;quot;\t&amp;quot; a &amp;quot;\t&amp;quot; $4 &amp;quot;\t&amp;quot; $5}' siler_maker.gff &amp;gt; siler.gff
+awk -F &amp;quot;\t&amp;quot; '{a=substr($9,4,25)}$0~/gene/{print $1 &amp;quot;\t&amp;quot; a &amp;quot;\t&amp;quot; $4 &amp;quot;\t&amp;quot; $5}' portia_maker.gff &amp;gt; portia.gff
+cat siler.gff portia.gff &amp;gt; all.gff
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;串联得到的 all.gff 还需进一步调整格式，在这里我查看了文件前 5 行，如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Scup_Un155 Siler_cupreus_00018918;Na 5062 30418
+Scup_Un155 Siler_cupreus_00018918-RA 5062 30418
+Scup_Un110 Siler_cupreus_00018926;Na 37738 48457
+Scup_Un110 Siler_cupreus_00018926-RA 37738 48457
+Scup_Chr6 Siler_cupreus_00012661;Na 359050 412595
+Scup_Chr6 Siler_cupreus_00012661-RA 359050 412595
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;接下来根据 all.gff 内容，需要作如下调整：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;删除所有带有 “;” 的行&lt;/li&gt;
+&lt;li&gt;删除所有未成功挂载的染色体（带有 &amp;ldquo;Un&amp;rdquo; 的行）&lt;/li&gt;
+&lt;li&gt;简化第一列的命名&lt;/li&gt;
+&lt;li&gt;简化第二列的命名&lt;/li&gt;
+&lt;li&gt;去重复&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;#删除所有带有 “;” 的行&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;grep -v &amp;quot;;&amp;quot; all.bed &amp;gt; all1.bed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;#删除所有未成功挂载的染色体（带有 &amp;ldquo;Un&amp;rdquo; 的行）&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;grep -v &amp;quot;Un&amp;quot; all1.bed &amp;gt; all2.bed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;#简化第一列的命名&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sed &amp;quot;s/Scup_Chr/sc/g&amp;quot; all2.bed &amp;gt; all3.bed
+sed 's/Ptai_Chr/Pt/g' all3.bed &amp;gt; all4.bed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;#简化第二列的命名&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#第二列中 -** 的去除
+awk 'BEGIN{OFS=&amp;quot;\t&amp;quot;} {
+for (i=1; i&amp;lt;=NF; i++) {
+sub(/-.*/, &amp;quot;&amp;quot;, $i);
+}
+print
+}' all4.bed &amp;gt; all5.bed
+#第二列中 gene ID 前缀简化
+sed 's/Siler_cupreus_/SC/g' all5.bed &amp;gt; all6.bed
+sed 's/Portia_taiwanica_/PT/g' all6.bed &amp;gt; all7.bed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;#去重复&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sort all7.bed | uniq &amp;gt; all.gff
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;此时得到的all.gff文件如下（当然，在此之前需要删除最初的 all.gff )&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;pt1 PT00000001 923338 1234673
+pt1 PT00000002 1283053 1329480
+pt1 PT00000003 1423863 1459005
+pt1 PT00000004 1510151 1568055
+pt1 PT00000005 1568392 1582644
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="13-运行-mcscanx"&gt;1.3 运行 MCScanX
+&lt;/h3&gt;&lt;p&gt;将 all.blast 和 all.gff 置于一个单独文件夹（这里使用 data/），运行 MCScanX&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;MCScanX data/all -b 2 -s 5 -e 1e-5
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;all.blast 和 all.gff 两个文件命名除了后缀必须完全相同&lt;/li&gt;
+&lt;li&gt;两个文件中的gene ID 必须完全相同&lt;/li&gt;
+&lt;li&gt;MCScanX 运行命令在文件夹后必须跟上统一的文件名&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="14-可视化"&gt;1.4 可视化
+&lt;/h3&gt;&lt;p&gt;使用上一步得到的 all.gff 和 all.collinearity 文件&lt;/p&gt;
+&lt;p&gt;在 &lt;a class="link" href="https://www.chiplot.online/" target="_blank" rel="noopener"
+&gt;https://www.chiplot.online/&lt;/a&gt; 中绘图&lt;/p&gt;</description></item><item><title>比较基因组学分析3：节点扩张/收缩基因家族富集分析</title><link>https://zyyang0124.github.io/p/comparativegemomics3/</link><pubDate>Thu, 29 Jan 2026 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/comparativegemomics3/</guid><description>&lt;img src="https://zyyang0124.github.io/p/comparativegemomics3/1.JPG" alt="Featured image of post 比较基因组学分析3：节点扩张/收缩基因家族富集分析" /&gt;&lt;p&gt;在&lt;a class="link" href="https://zyyang0124.github.io/p/cafe-genefamily1/" target="_blank" rel="noopener"
+&gt;比较基因组学分析2：CAFE5 基因家族分析&lt;/a&gt;中，我们探讨了基因家族扩张和收缩的分析。&lt;/p&gt;
+&lt;p&gt;本博文以 node 7 为例，进行功能富集分析。&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://zyyang0124.github.io/p/comparativegemomics3/2.png"
+width="1520"
+height="1197"
+srcset="https://zyyang0124.github.io/p/comparativegemomics3/2_hu_c46b093daa1433dd.png 480w, https://zyyang0124.github.io/p/comparativegemomics3/2_hu_de05286d2befffe.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="126"
+data-flex-basis="304px"
+&gt;&lt;/p&gt;
+&lt;h2 id="1-获取目的基因"&gt;1. 获取目的基因
+&lt;/h2&gt;&lt;p&gt;本部分的关键在于合理选择目标基因与背景基因。其中，&lt;strong&gt;目标基因&lt;/strong&gt;通常指在该演化节点上显著扩张的基因家族所包含的所有物种中的对应基因；&lt;strong&gt;背景基因&lt;/strong&gt;则一般选取该节点所涵盖的全部 Orthogroup，用以构建一个适用于该演化节点的参考基因集。&lt;/p&gt;
+&lt;h3 id="11-获取-node7-显著扩张的基因"&gt;1.1 获取 node7 显著扩张的基因
+&lt;/h3&gt;&lt;pre&gt;&lt;code&gt;# node7 显著扩张的orthogroupsID
+cat Gamma_change_sig0.05.tsv | cut -f1,8 | awk '$2 &amp;gt; 0' | cut -f1 &amp;gt; node7.expand
+# 提取 node7 显著扩张的基因
+grep -f node7.expand Orthogroups.tsv | cut -f9 | \
+sed &amp;quot;s/ /\\n/g&amp;quot; | sed &amp;quot;s/\t/\\n/g&amp;quot; | sed &amp;quot;s/,//g&amp;quot; | \
+sort | uniq &amp;gt; node7.expand.genes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="12-选择-node7-的背景基因"&gt;1.2 选择 node7 的背景基因
+&lt;/h3&gt;&lt;pre&gt;&lt;code&gt;# node7中存在基因的orthogroupsID
+awk 'NR!=1 &amp;amp;&amp;amp; $8&amp;gt;0 {print $0}' Gamma_count.tab | cut -f1 &amp;gt; node7.orthogroups
+grep -f node7.orthogroups Orthogroups.tsv | cut -f9 | \
+sed &amp;quot;s/ /\n/g&amp;quot; | sed &amp;quot;s/\t/\n/g&amp;quot; | sed &amp;quot;s/,//g&amp;quot; | sort | uniq &amp;gt; node7.genes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;node7.genes&lt;/code&gt; 和 &lt;code&gt;node7.expand.genes&lt;/code&gt; 即为富集分析所需的目标基因 ID。由于涉及无参物种，需自行构建背景基因集的 GO 与 KEGG 功能注释。&lt;/p&gt;
+&lt;h2 id="2-构建背景基因的-go-和-kegg-注释"&gt;2. 构建背景基因的 GO 和 KEGG 注释
+&lt;/h2&gt;&lt;h3 id="21-go-和-kegg-注释"&gt;2.1 GO 和 KEGG 注释
+&lt;/h3&gt;&lt;p&gt;使用 eggong 对背景基因进行注释&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#提取背景基因，需要严格注意基因数是否一致
+seqkit grep -f node7.genes \
+/home/salticidae/disk_computation/zy_gene_family_evo_analysis/1_orthofinder/proteins/siler.faa \
+&amp;gt; node7.fa
+/home/salticidae/install/eggnog-mapper-2.1.12/emapper.py \
+-m diamond -i node7.fa -o node7 --cpu 50
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;现在，我们得到&lt;code&gt;node7.emapper.annotations&lt;/code&gt;文件，&lt;strong&gt;需删除其前三行和所有的 “#”&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3 id="22-go-注释库构建"&gt;2.2 GO 注释库构建
+&lt;/h3&gt;&lt;p&gt;首先要获取 &lt;a class="link" href="http://purl.obolibrary.org/obo/go/go-basic.obo" target="_blank" rel="noopener"
+&gt;GO 的基础注释文件&lt;/a&gt;。下载完成后，根据分析需求对该文件进行整理与格式修饰，以构建适用于本物种的 GO 注释库。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;wget https://current.geneontology.org/ontology/go-basic.obo
+# 1. 提取GO ID
+grep &amp;quot;^id:&amp;quot; go-basic.obo | awk '{print $2}' &amp;gt; GO.id
+# 2. 提取GO名称
+grep &amp;quot;^name:&amp;quot; go-basic.obo | sed 's/^name: //' &amp;gt; GO.name
+# 3. 提取GO分类
+grep &amp;quot;^namespace:&amp;quot; go-basic.obo | awk '{print $2}' &amp;gt; GO.class
+# 4. 合并三个文件
+paste GO.id GO.name GO.class -d &amp;quot;\t&amp;quot; &amp;gt; GO.library
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="23-kegg-注释库构建"&gt;2.3 KEGG 注释库构建
+&lt;/h3&gt;&lt;p&gt;构建 KEGG 注释库需要获取 KEGG 的层级信息文件：下载 &lt;a class="link" href="https://www.genome.jp/kegg-bin/get_htext?ko00001" target="_blank" rel="noopener"
+&gt;ko00001.json&lt;/a&gt;，下载后将其整理为可解析的本地 KEGG 注释文件，以便后续提取 KO 层级关系并用于富集分析。&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://zyyang0124.github.io/p/comparativegemomics3/3.png"
+width="835"
+height="799"
+srcset="https://zyyang0124.github.io/p/comparativegemomics3/3_hu_d0f8f13243f507ca.png 480w, https://zyyang0124.github.io/p/comparativegemomics3/3_hu_3870422f29f9d717.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="104"
+data-flex-basis="250px"
+&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# nano kegg_parser.R
+# kegg_parser.R
+library(jsonlite)
+library(purrr)
+library(RCurl)
+library(dplyr)
+library(stringr)
+kegg &amp;lt;- function(json = &amp;quot;ko00001.json&amp;quot;) {
+# 初始化存储对象
+pathway2name &amp;lt;- tibble(Pathway = character(), Name = character())
+ko2pathway &amp;lt;- tibble(Ko = character(), Pathway = character())
+# 读取 JSON 数据
+kegg_data &amp;lt;- fromJSON(json)
+# 遍历 KEGG 层级结构
+for (a in seq_along(kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]])) {
+A &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;name&amp;quot;]][[a]]
+for (b in seq_along(kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]])) {
+B &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;name&amp;quot;]][[b]]
+for (c in seq_along(kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]][[b]][[&amp;quot;children&amp;quot;]])) {
+# 提取通路信息
+pathway_info &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]][[b]][[&amp;quot;name&amp;quot;]][[c]]
+# 提取通路 ID 和名称
+pathway_id &amp;lt;- str_match(pathway_info, &amp;quot;ko[0-9]{5}&amp;quot;)[1]
+pathway_name &amp;lt;- str_replace(pathway_info, &amp;quot; \\[PATH:ko[0-9]{5}\\]&amp;quot;, &amp;quot;&amp;quot;) %&amp;gt;%
+str_replace(&amp;quot;[0-9]{5} &amp;quot;, &amp;quot;&amp;quot;)
+# 添加到通路-名称对照表
+pathway2name &amp;lt;- rbind(pathway2name,
+tibble(Pathway = pathway_id, Name = pathway_name))
+# 提取 KO 信息
+kos_info &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]][[b]][[&amp;quot;children&amp;quot;]][[c]][[&amp;quot;name&amp;quot;]]
+kos &amp;lt;- str_match(kos_info, &amp;quot;K[0-9]*&amp;quot;)[,1]
+# 添加到 KO-通路对照表
+ko2pathway &amp;lt;- rbind(ko2pathway,
+tibble(Ko = kos, Pathway = rep(pathway_id, length(kos))))
+}
+}
+}
+# 重命名列
+colnames(ko2pathway) &amp;lt;- c(&amp;quot;KO&amp;quot;, &amp;quot;Pathway&amp;quot;)
+# 保存结果
+save(pathway2name, ko2pathway, file = &amp;quot;kegg_info.RData&amp;quot;)
+write.table(pathway2name, &amp;quot;KEGG.library&amp;quot;, sep = &amp;quot;\t&amp;quot;, row.names = F)
+}
+# 调用函数
+kegg(json = &amp;quot;ko00001.json&amp;quot;)
+# Rscript kegg_parser.R
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="24-构建背景注释"&gt;2.4 构建背景注释
+&lt;/h3&gt;&lt;p&gt;背景注释构建的核心在于将本研究中的基因集与前述整理好的 GO 和 KEGG 注释库进行匹配。通过将各 Orthogroup 中的所有基因与其对应的注释信息关联，可生成适用于富集分析的背景基因注释表，为后续的统计检验提供可靠的参考基准。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# nano GO_KEGG_annotation.R
+# 加载必要的库
+library(clusterProfiler)
+library(dplyr)
+library(stringr)
+options(stringsAsFactors = F)
+## STEP1: GO注释生成
+# 首先需要读入文件
+egg &amp;lt;- read.delim(&amp;quot;node7.emapper.annotations&amp;quot;, header = T, sep = &amp;quot;\t&amp;quot;)
+egg[egg == &amp;quot;&amp;quot;] &amp;lt;- NA # 将空行变成NA，方便后续的去除
+# 从文件中挑出基因query与eggnog注释信息
+# gene_info &amp;lt;- egg %&amp;gt;%
+# dplyr::select(GID = query, GENENAME = eggNOG_OGs) %&amp;gt;% na.omit()
+# 挑出query_name与GO注释信息
+gterms &amp;lt;- egg %&amp;gt;%
+dplyr::select(query, GOs) %&amp;gt;%
+na.omit()
+gene_ids &amp;lt;- egg$query
+eggnog_lines_with_go &amp;lt;- egg$GOs != &amp;quot;&amp;quot;
+eggnog_lines_with_go
+eggnog_annoations_go &amp;lt;- str_split(egg[eggnog_lines_with_go, ]$GOs, &amp;quot;,&amp;quot;)
+gene2go &amp;lt;- data.frame(
+gene = rep(gene_ids[eggnog_lines_with_go],
+times = sapply(eggnog_annoations_go, length)),
+term = unlist(eggnog_annoations_go)
+)
+names(gene2go) &amp;lt;- c('gene_id', 'ID')
+go2name &amp;lt;- read.delim('GO.library', header = FALSE, stringsAsFactors = FALSE)
+names(go2name) &amp;lt;- c('ID', 'Description', 'Ontology')
+go_anno &amp;lt;- merge(gene2go, go2name, by = 'ID', all.x = TRUE)
+# 将GO注释信息保存
+save(go_anno, file = &amp;quot;node7_GO.rda&amp;quot;)
+## STEP2: KEGG注释生成
+gene2ko &amp;lt;- egg %&amp;gt;%
+dplyr::select(GID = query, KO = KEGG_ko) %&amp;gt;%
+na.omit()
+pathway2name &amp;lt;- read.delim(&amp;quot;KEGG.library&amp;quot;)
+colnames(pathway2name) &amp;lt;- c(&amp;quot;Pathway&amp;quot;, &amp;quot;Name&amp;quot;)
+gene2ko$KO &amp;lt;- str_replace(gene2ko$KO, &amp;quot;ko:&amp;quot;, &amp;quot;&amp;quot;)
+gene2pathway &amp;lt;- gene2ko %&amp;gt;%
+left_join(ko2pathway, by = &amp;quot;KO&amp;quot;) %&amp;gt;%
+dplyr::select(GID, Pathway) %&amp;gt;%
+na.omit()
+kegg_anno &amp;lt;- merge(gene2pathway, pathway2name, by = 'Pathway', all.x = TRUE)[, c(2, 1, 3)]
+colnames(kegg_anno) &amp;lt;- c('gene_id', 'pathway_id', 'pathway_description')
+save(kegg_anno, file = &amp;quot;node7_KEGG.rda&amp;quot;)
+# Rscript GO_KEGG_annotation.R
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="25-go-和-kegg-富集分析"&gt;2.5 GO 和 KEGG 富集分析
+&lt;/h3&gt;&lt;p&gt;使用前面构建的 &lt;code&gt;node7_GO.rda&lt;/code&gt;、&lt;code&gt;node7_KEGG.rda&lt;/code&gt;，以及目标基因文件 &lt;code&gt;node7.expand.genes&lt;/code&gt;，即可开展该节点的 GO 与 KEGG 富集分析。后续作图通常只需选择前 10 或前 20 个条目，具体筛选范围可根据实际需求调整。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;## STEP3: GO富集分析
+# 目标基因列表(全部基因)
+gene_select &amp;lt;- read.delim(file = 'node7.expand.genes', stringsAsFactors = FALSE, header = F)$V1
+# GO富集分析
+# 默认以所有注释到GO 的基因为背景集，也可通过 universe 参数输入背景集
+# 默认以p&amp;lt;0.05 为标准，Benjamini 方法校正 p 值，q 值阈值 0.2
+# 默认输出top500 富集结果
+# 如果想输出所有富集结果（不考虑 p 值阈值等），将 p、q 等值设置为 1 即可
+# 或者直接在enrichResult 类对象中直接提取需要的结果
+go_rich &amp;lt;- enricher(gene = gene_select,
+TERM2GENE = go_anno[c('ID', 'gene_id')],
+TERM2NAME = go_anno[c('ID', 'Description')],
+pvalueCutoff = 1,
+pAdjustMethod = 'BH',
+qvalueCutoff = 1)
+# 输出默认结果，即根据上述 p 值等阈值筛选后的
+tmp &amp;lt;- merge(go_rich, go2name[c('ID', 'Ontology')], by = 'ID')
+tmp &amp;lt;- tmp[c(10, 1:9)]
+tmp &amp;lt;- tmp[order(tmp$pvalue), ]
+write.table(tmp, 'node7.expand.GO.xls', sep = '\t', row.names = FALSE, quote = FALSE)
+## STEP4: KEGG注释
+gene_select &amp;lt;- read.delim('node7.expand.genes', stringsAsFactors = FALSE, header = F)$V1
+# KEGG富集分析
+# 默认以所有注释到KEGG 的基因为背景集，也可通过 universe 参数指定其中的一个子集作为背景集
+# 默认以p&amp;lt;0.05 为标准，Benjamini 方法校正 p 值，q 值阈值 0.2
+# 默认输出top500 富集结果
+kegg_rich &amp;lt;- enricher(gene = gene_select,
+TERM2GENE = kegg_anno[c('pathway_id', 'gene_id')],
+TERM2NAME = kegg_anno[c('pathway_id', 'pathway_description')],
+pvalueCutoff = 1,
+pAdjustMethod = 'BH',
+qvalueCutoff = 1,
+maxGSSize = 500)
+# 输出默认结果，即根据上述 p 值等阈值筛选后的
+write.table(kegg_rich, 'node7.expand.KEGG.xls', sep = '\t', row.names = FALSE, quote = FALSE)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;清理与注意事项（修改后文本）&lt;/strong&gt; &lt;/p&gt;
+&lt;p&gt;在输出的富集结果文件中，需要注意两类问题并进行处理。第一类是重复条目：有些 GO/KEGG 条目在表中出现多次，但其 geneID 列完全相同。遇到这种情况，应保留一条并删除其余重复条目，以避免后续统计与作图时重复计数。第二类是功能背景不匹配的条目：部分显著富集的条目可能与植物有关，而目标研究对象并非植物，这类条目应按实际生物学意义酌情剔除或标注为“可疑/需人工确认”。&lt;/p&gt;
+&lt;h2 id="3-富集结果可视化"&gt;3. 富集结果可视化
+&lt;/h2&gt;&lt;p&gt;在绘图阶段选取富集结果中排名前 20 的条目（TOP20）进行可视化。通过展示这些显著富集的功能类别，可以直观判断在陆生植物出现这一关键进化节点上，哪些基因功能发生了大规模扩张，从而推断其在适应性进化中的潜在作用。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;GO绘图：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;library(ggplot2)
+pathway = read.delim(&amp;quot;node7.expand.GO.xls&amp;quot;, header = T, sep = &amp;quot;\t&amp;quot;)
+pathway$GeneRatio &amp;lt;- pathway[, 10] / 2434 ## 这个2434是差异基因总数：sort node7.expand.genes | uniq | wc -l
+pathway$log &amp;lt;- -log10(pathway[, 6])
+library(dplyr)
+library(ggrepel)
+GO &amp;lt;- arrange(pathway, pathway[, 6])
+GO_dataset &amp;lt;- GO[1:20, ] # 20即为需要可视化的数量
+# 按照PValue从低到高排序[升序]
+GO_dataset$Description &amp;lt;- factor(GO_dataset$Description, levels = unique(rev(GO_dataset$Description)))
+GO_dataset$GeneRatio &amp;lt;- as.numeric(GO_dataset$GeneRatio)
+GO_dataset$GeneRatio
+GO_dataset$log
+# 图片背景设定
+mytheme &amp;lt;- theme(axis.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black'), # 坐标轴标题
+axis.text.y = element_text(face = &amp;quot;bold&amp;quot;, size = 6, colour = 'black'), # 坐标轴标签
+axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1, size = 8),
+axis.line = element_line(size = 0.5, colour = 'black'), # 轴线
+panel.background = element_rect(color = 'black'), # 绘图区边框
+plot.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black', hjust = 0.8),
+legend.key = element_blank() # 关闭图例边框
+)
+# 绘制GO气泡图
+p &amp;lt;- ggplot(GO_dataset, aes(x = GeneRatio, y = Description, colour = log, size = Count, shape = Ontology)) +
+geom_point() +
+scale_size(range = c(2, 8)) +
+scale_colour_gradient(low = &amp;quot;#52c2eb&amp;quot;, high = &amp;quot;#EA4F30&amp;quot;) +
+theme_bw() +
+labs(x = 'GeneRatio', y = 'GO Terms', # 自定义x、y轴、标题内容
+title = 'Enriched GO Terms') +
+labs(color = expression(-log[10](pvalue))) +
+theme(legend.title = element_text(size = 8), legend.text = element_text(size = 14)) +
+theme(axis.title.y = element_text(margin = margin(r = 50)), axis.title.x = element_text(margin = margin(t = 20))) +
+theme(axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1))
+plot &amp;lt;- p + mytheme
+plot
+# 保存图片
+ggsave(plot, filename = &amp;quot;node7.pdf&amp;quot;, width = 210, height = 210, units = &amp;quot;mm&amp;quot;, dpi = 300)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;KEGG绘图：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;pathway = read.delim(&amp;quot;node7.expand.KEGG.xls&amp;quot;, header = T, sep = &amp;quot;\t&amp;quot;)
+pathway$GeneRatio &amp;lt;- pathway[, 9] / 2434
+pathway$log &amp;lt;- -log10(pathway[, 5])
+library(dplyr)
+library(ggrepel)
+KEGG &amp;lt;- arrange(pathway, pathway[, 5])
+KEGG_dataset &amp;lt;- KEGG[1:20, ]
+# Pathway列最好转化成因子型，否则作图时ggplot2会将所有Pathway按字母顺序重排序
+# 将Pathway列转化为因子型
+KEGG_dataset$Description &amp;lt;- factor(KEGG_dataset$Description, levels = rev(KEGG_dataset$Description))
+KEGG_dataset$GeneRatio &amp;lt;- as.numeric(KEGG_dataset$GeneRatio)
+KEGG_dataset &amp;lt;- arrange(KEGG_dataset, KEGG_dataset[, 5])
+KEGG_dataset$GeneRatio
+KEGG_dataset$log
+# 图片背景设定
+mytheme &amp;lt;- theme(axis.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black'), # 坐标轴标题
+axis.text.y = element_text(face = &amp;quot;bold&amp;quot;, size = 6, colour = 'black'), # 坐标轴标签
+axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1, size = 8),
+axis.line = element_line(size = 0.5, colour = 'black'), # 轴线
+panel.background = element_rect(color = 'black'), # 绘图区边框
+plot.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black', hjust = 0.8),
+legend.key = element_blank() # 关闭图例边框
+)
+# 绘制KEGG气泡图
+p &amp;lt;- ggplot(KEGG_dataset, aes(x = GeneRatio, y = Description, colour = log, size = Count)) +
+geom_point() +
+scale_size(range = c(2, 8)) +
+scale_colour_gradient(low = &amp;quot;#52c2eb&amp;quot;, high = &amp;quot;#EA4F30&amp;quot;) +
+theme_bw() +
+labs(x = 'GeneRatio', y = 'KEGG Terms', # 自定义x、y轴、标题内容
+title = 'Enriched KEGG Terms') +
+labs(color = expression(-log[10](pvalue))) +
+theme(legend.title = element_text(size = 8), legend.text = element_text(size = 14)) +
+theme(axis.title.y = element_text(margin = margin(r = 50)), axis.title.x = element_text(margin = margin(t = 20))) +
+theme(axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1))
+plot &amp;lt;- p + mytheme
+plot
+# 保存图片
+ggsave(plot, filename = &amp;quot;node7_KEGG.pdf&amp;quot;, width = 210, height = 210, units = &amp;quot;mm&amp;quot;, dpi = 300)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;本文参考：&lt;/strong&gt;
+&lt;a class="link" href="https://mp.weixin.qq.com/s/axpsltHquMFSI5l-KkAEZg" target="_blank" rel="noopener"
+&gt;叨叨陈聊生物&lt;/a&gt;&lt;/p&gt;</description></item><item><title>比较基因组学分析2：基因家族的扩张与收缩</title><link>https://zyyang0124.github.io/p/cafe-genefamily1/</link><pubDate>Fri, 21 Nov 2025 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/cafe-genefamily1/</guid><description>&lt;img src="https://zyyang0124.github.io/p/cafe-genefamily1/1.JPG" alt="Featured image of post 比较基因组学分析2：基因家族的扩张与收缩" /&gt;&lt;h2 id="1-背景与目的"&gt;1. 背景与目的
+&lt;/h2&gt;&lt;p&gt;基因家族扩张与收缩是基因组进化中的重要现象。通过比较不同物种的基因家族大小，可以揭示基因在进化过程中经历的增减变化，进而理解物种如何适应不同生态环境以及其独特的进化机制。基因家族扩张往往与新功能获得、适应性特征的进化相关；而收缩可能反映某些功能的丧失或选择压力的变化。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="2-cafe5-简介"&gt;2. CAFE5 简介
+&lt;/h2&gt;&lt;p&gt;CAFE5（Computational Analysis of Gene Family Evolution）是一种常用的基因家族进化分析工具，它基于系统发育树和基因家族大小数据，利用最大似然法推测基因家族在各个分支上经历的扩张与收缩事件。该方法不仅可以量化基因家族变化，还可以判断这些变化是否显著，从而帮助研究者识别潜在的功能相关基因家族。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; Orthogroups.GeneCount.tsv 时间树（tree.txt）
+│ │
+└──────────────┬──────────────┘
+▼
+CAFE5 输入处理
+│
+▼
+CAFE5 分析
+│
+▼
+输出 Gamma_* 文件
+│
+▼
+筛选显著扩张/收缩家族
+(Gamma_family_results.txt + Gamma_change.tab)
+│
+▼
+┌───────────────────────────┐
+│ │
+sig_change_tsv.py sig_change_map_to_tree.py
+输出 Gamma_change_sig.tsv 输出 cleaned_tree_sig_only.txt
+│ │
+▼ ▼
+后续统计/功能分析 树上可视化显著家族扩张/收缩
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2 id="3-输入数据准备"&gt;3. 输入数据准备
+&lt;/h2&gt;&lt;p&gt;在使用CAFE5时，至少需要准备两个输入文件：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Orthogroups.GeneCount.tsv：基因家族的计数文件。&lt;/li&gt;
+&lt;li&gt;tree.txt：系统发育树文件，包含物种分化时间。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="31-从-orthofinder-的-orthogroupsgenecounttsv-生成-cafe5-输入文件"&gt;3.1 从 OrthoFinder 的 Orthogroups.GeneCount.tsv 生成 CAFE5 输入文件
+&lt;/h3&gt;&lt;p&gt;Orthogroups.GeneCount.tsv 文件用于记录每个基因家族（Orthogroup）在不同物种中的基因拷贝数，是 CAFE5 分析的核心输入之一。该文件通常来自 OrthoFinder 或 OrthoMCL 等软件，其中每一行对应一个基因家族，每一列对应一个物种的基因数量。为了让 CAFE5 正确读取，我们需要对原始文件进行一些格式检查和整理。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cp ../1_OrthoFinder/Results_Apr18/Orthogroups/Orthogroups.GeneCount.tsv 11.18.cafe
+sed 's/_//g' Orthogroups.GeneCount.tsv | awk 'BEGIN{OFS=&amp;quot;\t&amp;quot;} {$NF=&amp;quot;&amp;quot;; print}' | awk '{print &amp;quot;(null)\t&amp;quot;$$0}' | sed '1s/(null)/Desc/' &amp;gt; cafe.input.tsv
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;生成之后还需要剔除不同物种间拷贝数差异过大的基因家族，否则会报错，可以使用官方提供的脚本：https://github.com/hahnlab/cafe_tutorial/blob/main/python_scripts/cafetutorial_clade_and_size_filter.py&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;python /home/salticidae/install/CAFE5-master/scripts/cafetutorial_clade_and_size_filter.py -i cafe.input.tsv -o gene_family_filter.txt -s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h3 id="32-生成时间树"&gt;3.2 生成时间树
+&lt;/h3&gt;&lt;p&gt;时间树的构建见博客xxx&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="4-运行-cafe5"&gt;4. 运行 cafe5
+&lt;/h2&gt;&lt;p&gt;CAFE5的运行命令如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cafe5 -i gene_family_filter.txt -t cafe.input.tree -o out_gamma_k1 -c 80 -k 1 -p
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;一般运行 k=1~5，根据其输出的 Base/Gamma_results.txt 文件判断哪个拟合程度最好。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;lnL（似然值）：越小越好。表征模型拟合度，-lnL 越小、模型越好。&lt;/li&gt;
+&lt;li&gt;Alpha：是否存在谱系异质性。Alpha 越大，表示更强的“家族进化速率的变异”；如果 Alpha ≈ 0，则说明 Gamma 模型没必要。&lt;/li&gt;
+&lt;li&gt;失败家族（failure rates &amp;gt;20%）：太多失败说明模型可能不稳定，或某些家族数据异常。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="5-结果解读"&gt;5. 结果解读
+&lt;/h2&gt;&lt;pre&gt;&lt;code&gt;Gamma_asr.tre # 每个基因家族的树文件
+Gamma_branch_probabilities.tab # 每个分支计算的概率
+Gamma_category_likelihoods.txt
+Gamma_change.tab # 每一个基因家族在每个节点的收缩与扩张数目
+Gamma_clade_results.txt # 每个节点基因家族的扩张/收缩数目
+Gamma_count.tab # 每一个基因家族在每个节点的数目
+Gamma_family_likelihoods.txt
+Gamma_family_results.txt # 基因家族变化的p值和是否显著的结果
+Gamma_report.cafe
+Gamma_results.txt # 模型，最终似然值，最终Lambda值等参数信息
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="51-每个节点显著收缩扩张的基因家族数目可视化"&gt;5.1 每个节点显著收缩/扩张的基因家族数目可视化
+&lt;/h3&gt;&lt;p&gt;将显著扩张/收缩的基因家族数目体现在树上，需要三个文件：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Gamma_family_results.txt
+Gamma_clade_results.txt
+Gamma_asr.tre
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从cafe5的输出文件 Gamma_asr.tre 中获得树文件，写入 id_tree.txt&lt;/p&gt;
+&lt;p&gt;去掉节点多余的内容：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sed -E 's/(&amp;lt;[0-9]+&amp;gt;)[^:,;)]+/\1/g' id_tree.txt &amp;gt; cleaned_tree.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;运行脚本 &lt;code&gt;sig0.05_change_map_to_tree.py&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;从 Gamma_family_results.txt 读入显著家族只保留 &amp;ldquo;y&amp;rdquo; 的基因家族；&lt;/li&gt;
+&lt;li&gt;从 Gamma_change.tab 选取显著家族对应的行；&lt;/li&gt;
+&lt;li&gt;每个节点分别统计：所有显著家族的扩张数，所有显著家族的收缩数；&lt;/li&gt;
+&lt;li&gt;最后将其 map 到树上：写入 cleaned_tree_sig0.05_only.txt&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;pre&gt;&lt;code&gt;cat &amp;gt; sig0.05_change_map_to_tree.py &amp;lt;&amp;lt; 'EOF'
+#!/usr/bin/env python3
+import re
+import pandas as pd
+# -----------------------------
+# 1. 读取显著家族列表
+# -----------------------------
+sig_fams = set()
+with open(&amp;quot;Gamma_family_results.txt&amp;quot;) as f:
+next(f) # 跳过标题
+for line in f:
+parts = line.strip().split()
+if len(parts) &amp;gt;= 3 and parts[2].lower() == &amp;quot;y&amp;quot;:
+sig_fams.add(parts[0])
+print(f&amp;quot;显著家族数: {len(sig_fams)}&amp;quot;)
+# -----------------------------
+# 2. 读取 CAFE family × node 变化矩阵
+# -----------------------------
+df = pd.read_csv(&amp;quot;Gamma_change.tab&amp;quot;, sep=&amp;quot;\t&amp;quot;)
+node_cols = df.columns[1:] # 第一列是 FamilyID
+# 仅显著家族
+df_sig = df[df[&amp;quot;FamilyID&amp;quot;].isin(sig_fams)]
+print(f&amp;quot;显著家族矩阵形状: {df_sig.shape}&amp;quot;)
+# -----------------------------
+# 3. 统计显著扩张/收缩的“家族数量”
+# -----------------------------
+node_change = {}
+for node in node_cols:
+changes = df_sig[node]
+inc = (changes &amp;gt; 0).sum() # 扩张家族数量
+dec = (changes &amp;lt; 0).sum() # 收缩家族数量
+node_change[node] = (int(inc), int(dec))
+print(&amp;quot;每个节点显著扩张/收缩数量统计完毕。&amp;quot;)
+# -----------------------------
+# 4. 读取树
+# -----------------------------
+with open(&amp;quot;cleaned_tree.txt&amp;quot;) as f:
+tree = f.read()
+# -----------------------------
+# 5. 替换树中的节点名称
+# -----------------------------
+for node, (inc, dec) in node_change.items():
+if inc == 0 and dec == 0:
+continue # 两者都不显著则跳过
+new_label = node
+if inc &amp;gt; 0:
+new_label += f&amp;quot;+{inc}&amp;quot;
+if dec &amp;gt; 0:
+new_label += f&amp;quot;-{dec}&amp;quot;
+tree = re.sub(re.escape(node), new_label, tree)
+# -----------------------------
+# 6. 输出
+# -----------------------------
+with open(&amp;quot;cleaned_tree_sig0.05_only.txt&amp;quot;, &amp;quot;w&amp;quot;) as f:
+f.write(tree)
+print(&amp;quot;写入完成：cleaned_tree_sig0.05_only.txt&amp;quot;)
+EOF
+python3 sig0.05_change_map_to_tree.py
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h3 id="52-过滤每个节点基因家族的扩张收缩数目文件中不显著的基因家族"&gt;5.2 过滤每个节点基因家族的扩张/收缩数目文件中不显著的基因家族
+&lt;/h3&gt;&lt;p&gt;运行过滤脚本 &lt;code&gt;sig0.05_change_tsv.py&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;以 Gamma_family_results.txt 里显著家族为准，从 Gamma_change.tab 中去掉不显著家族；&lt;/li&gt;
+&lt;li&gt;输出一个新的 Gamma_change_sig0.05.tsv。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;pre&gt;&lt;code&gt;cat &amp;gt; sig0.05_change_tsv.py &amp;lt;&amp;lt; 'EOF'
+#!/usr/bin/env python3
+import pandas as pd
+# -----------------------------
+# 1. 读取显著家族列表
+# -----------------------------
+sig_fams = set()
+with open(&amp;quot;Gamma_family_results.txt&amp;quot;) as f:
+next(f) # 跳过标题
+for line in f:
+parts = line.strip().split()
+if len(parts) &amp;gt;= 3 and parts[2].lower() == &amp;quot;y&amp;quot;:
+sig_fams.add(parts[0])
+print(f&amp;quot;显著家族数: {len(sig_fams)}&amp;quot;)
+# -----------------------------
+# 2. 读取 Gamma_change.tab
+# -----------------------------
+df = pd.read_csv(&amp;quot;Gamma_change.tab&amp;quot;, sep=&amp;quot;\t&amp;quot;)
+# -----------------------------
+# 3. 筛选显著家族
+# -----------------------------
+df_sig = df[df[&amp;quot;FamilyID&amp;quot;].isin(sig_fams)]
+# -----------------------------
+# 4. 输出新的显著家族矩阵
+# -----------------------------
+output_file = &amp;quot;Gamma_change_sig0.05.tsv&amp;quot;
+df_sig.to_csv(output_file, sep=&amp;quot;\t&amp;quot;, index=False)
+print(f&amp;quot;完成，已生成 {output_file}，仅包含显著家族&amp;quot;)
+EOF
+python3 sig0.05_change_tsv.py
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;</description></item><item><title>使用 Mesquite 在基因组组装中搜索 Sanger 测序遗留基因</title><link>https://zyyang0124.github.io/p/bycatch/</link><pubDate>Tue, 04 Nov 2025 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/bycatch/</guid><description>&lt;img src="https://zyyang0124.github.io/p/bycatch/1.JPG" alt="Featured image of post 使用 Mesquite 在基因组组装中搜索 Sanger 测序遗留基因" /&gt;&lt;p&gt;感谢 Wayne P. Maddison 对流程实现的帮助&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="前言"&gt;前言
+&lt;/h2&gt;&lt;p&gt;系统发育研究常受限于高通量测序（NGS）数据难以覆盖国外物种，导致取样范围不足，影响结果的代表性与说服力。然而，NCBI 等公共数据库中往往已有这些物种的 Sanger 测序数据。针对这一问题，可采用下文策略：从已有的 NGS 数据中“钓取”（bycatch）目标基因的同源序列，将其与 NCBI 下载的 Sanger 序列进行整合，从而构建取样更全面、更具代表性的系统发育树。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="1-前提条件"&gt;1. 前提条件
+&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;确保已安装 BLAST
+&lt;ul&gt;
+&lt;li&gt;本流程依赖 BLAST 工具。&lt;/li&gt;
+&lt;li&gt;BLAST 可能已包含在 Mesquite 安装目录下的 apps 文件夹中。&lt;/li&gt;
+&lt;li&gt;若未包含，则需在您的计算机上单独安装 BLAST。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;准备基因组组装 FASTA 文件
+&lt;ul&gt;
+&lt;li&gt;将包含目标基因可能存在的 contig 组装结果（FASTA 格式）放入一个专用目录中。&lt;/li&gt;
+&lt;li&gt;这些 FASTA 文件是后续 BLAST 搜索的目标数据库。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;准备目标序列
+&lt;ul&gt;
+&lt;li&gt;下载高质量的目标序列&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="2-主要操作步骤"&gt;2. 主要操作步骤
+&lt;/h2&gt;&lt;h3 id="21-启动-mesquite"&gt;2.1 启动 Mesquite
+&lt;/h3&gt;&lt;h3 id="22-将-fasta-文件转换为-blast-可用数据库"&gt;2.2 将 FASTA 文件转换为 BLAST 可用数据库
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;在 Mesquite 的 Log 窗口中，选择菜单：&lt;code&gt;Utilities &amp;gt; Make BLASTable Files from FASTA&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;在弹出的对话框中，选择包含组装 FASTA 文件的目录。&lt;/li&gt;
+&lt;li&gt;Mesquite 将为该目录中的每个 FASTA 文件生成对应的 BLAST 数据库。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="23-加载目标序列target-sequence"&gt;2.3 加载目标序列（Target Sequence）
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;在 Mesquite 中打开一个包含&lt;strong&gt;目标基因序列&lt;/strong&gt;的文件。&lt;/li&gt;
+&lt;li&gt;该目标序列应为高质量的已知序列，来自您的研究物种或其近缘种（关系越近，bycatch 结果越好）。&lt;/li&gt;
+&lt;li&gt;后续将用此序列对上述组装数据库进行 BLAST 比对。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="24-在矩阵编辑器中选中目标序列行"&gt;2.4 在矩阵编辑器中选中目标序列行
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;Character Matrix Editor&lt;/code&gt; 中，点击选中代表目标序列的那一行。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="25-启动本地-blast-搜索"&gt;2.5 启动本地 BLAST 搜索
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;选择菜单：&lt;code&gt;Matrix &amp;gt; Search &amp;gt; Top BLAST Matches&lt;/code&gt;，然后选择 &lt;code&gt;BLAST Local Server&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;点击 OK，将弹出 BLAST 配置对话框。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="26-配置-blast-搜索参数"&gt;2.6 配置 BLAST 搜索参数
+&lt;/h3&gt;&lt;p&gt;该对话框为通用 BLAST 设置界面，部分选项在此用途下不适用，具体设置如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a. “Additional BLAST options”（附加 BLAST 选项）中，无需手动指定最大 E 值（eValue）或字长（word size），这些将在下一步对话框中设置。&lt;/li&gt;
+&lt;li&gt;b. 取消勾选 &lt;code&gt;BLAST databases in default location&lt;/code&gt;（BLAST 数据库位于默认位置）。&lt;/li&gt;
+&lt;li&gt;c. 在 &lt;code&gt;Path to folder&lt;/code&gt;（数据库文件夹路径）中，选择第 2.2 中生成 BLAST 数据库的同一目录（即&lt;strong&gt;您的组装 FASTA 所在目录&lt;/strong&gt;）。&lt;/li&gt;
+&lt;li&gt;d. &lt;code&gt;Databases to search&lt;/code&gt;（要搜索的数据库）默认为 *，表示搜索该目录下所有数据库。如只需搜索部分数据库，可在此处输入具体的数据库名称列表。&lt;/li&gt;
+&lt;li&gt;e. 关于序列标题（header）格式的注意事项：
+&lt;ul&gt;
+&lt;li&gt;某些组装软件（如 CLC）在 FASTA 序列标题中包含物种名，例如：&amp;gt;MySpecies Specimen 2 | NODE 348830&amp;hellip;&lt;/li&gt;
+&lt;li&gt;而其他软件（如 SPAdes）则不包含，例如：&amp;gt;NODE 348830&amp;hellip;&lt;/li&gt;
+&lt;li&gt;如果您的组装 FASTA 标题中不包含物种名，建议勾选 &lt;code&gt;Prepend database name to hit names&lt;/code&gt;（在命中序列名前添加数据库名）。因为数据库名源自 FASTA 文件名，而文件名通常包含物种信息，此举有助于后续识别来源。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="27-设置比对与序列导入选项"&gt;2.7 设置比对与序列导入选项
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;建议勾选 &lt;code&gt;reverse complement if needed and align imported sequences&lt;/code&gt;（如需则反向互补，并对导入序列进行比对），以便直观查看结果。&lt;/li&gt;
+&lt;li&gt;是否允许内部插入空位（gaps）？
+&lt;ul&gt;
+&lt;li&gt;如果目标序列为蛋白质编码区（如 COI 基因），不要勾选 &lt;code&gt;allow new internal gaps&lt;/code&gt;；&lt;/li&gt;
+&lt;li&gt;如果目标序列包含非编码区，则建议勾选此项。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="28-执行-blast-搜索并导入结果"&gt;2.8 执行 BLAST 搜索并导入结果
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;点击 OK 后，Mesquite 将调用 BLAST 对指定数据库进行搜索；&lt;/li&gt;
+&lt;li&gt;自动提取满足条件的 contig 序列，并将其作为新行添加到当前矩阵中。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="29-修剪命中序列"&gt;2.9 修剪命中序列
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;根据目标参考序列，对命中的序列进行修剪&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="210-处理同一物种的多个命中"&gt;2.10 处理同一物种的多个命中
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;若某物种有多个 contig 被命中（例如一个 contig 覆盖基因前端，另一个覆盖后端），Mesquite 会为每个 contig 添加独立行。&lt;/li&gt;
+&lt;li&gt;此时，您可能希望将这些行合并为一条完整序列。Mesquite 将此操作称为 &lt;code&gt;Merge Taxa&lt;/code&gt;（合并分类单元）。&lt;/li&gt;
+&lt;li&gt;合并方式有两种入口：
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;Character Matrix Editor&lt;/code&gt; 中：&lt;code&gt;Matrix &amp;gt; Taxon Utilities &amp;gt; Merge Taxa&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;或在 &lt;code&gt;List of Taxa&lt;/code&gt; 窗口中：&lt;code&gt;List &amp;gt; Taxon Utilities &amp;gt; Merge Taxa&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;手动合并选定行
+&lt;ul&gt;
+&lt;li&gt;先在矩阵中选中需要合并的多行；&lt;/li&gt;
+&lt;li&gt;选择 &lt;code&gt;Taxon Utilities &amp;gt; Merge Selected Taxa&lt;/code&gt;；&lt;/li&gt;
+&lt;li&gt;系统将提供多种合并策略供选择。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;按名称自动匹配合并
+&lt;ul&gt;
+&lt;li&gt;选择 &lt;code&gt;Taxon Utilities &amp;gt; Merge Taxa by Name Matching&lt;/code&gt;；&lt;/li&gt;
+&lt;li&gt;系统会弹出对话框，询问名称中哪些部分需一致才能视为同一物种（例如前缀、文件名主体等）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;选择合并策略
+&lt;ul&gt;
+&lt;li&gt;无论采用手动还是自动匹配方式，下一步都会出现合并选项对话框。&lt;/li&gt;
+&lt;li&gt;推荐选择：&lt;code&gt;blend&lt;/code&gt;：在无冲突位置合并碱基，冲突处标记；或 &lt;code&gt;refuse&lt;/code&gt;（拒绝合并重叠区）：保留重叠区域供人工检查。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="211-导出数据"&gt;2.11 导出数据
+&lt;/h3&gt;</description></item><item><title>基于 CAFE 的基因家族回溯与功能注释</title><link>https://zyyang0124.github.io/p/cafe-genefamily/</link><pubDate>Tue, 04 Nov 2025 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/cafe-genefamily/</guid><description>&lt;img src="https://zyyang0124.github.io/p/cafe-genefamily/1.jpg" alt="Featured image of post 基于 CAFE 的基因家族回溯与功能注释" /&gt;&lt;h1 id="基于-cafe-的基因家族回溯与功能注释标准流程"&gt;基于 CAFE 的基因家族回溯与功能注释标准流程
+&lt;/h1&gt;&lt;pre&gt;&lt;code&gt;代码可参考 :
+https://github.com/ZyYang0124/Myscripts/blob/main/CAFE/extract_cafe_matrix_results.py
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2 id="一流程目标"&gt;一、流程目标
+&lt;/h2&gt;&lt;p&gt;本流程旨在从 &lt;strong&gt;CAFE 输出结果&lt;/strong&gt; 中识别显著扩张或收缩的基因家族，并通过回溯至基因家族构建与功能注释阶段，确定这些家族的成员组成与潜在功能，从而为基因家族进化分析提供生物学解释。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="二总体思路"&gt;二、总体思路
+&lt;/h2&gt;&lt;p&gt;CAFE 仅输出家族编号（如 &lt;code&gt;OG0000001&lt;/code&gt;）及其在各物种中的拷贝变化（ΔCopy），但该编号并不携带生物学意义。
+因此，需要通过以下路径逐级回溯：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CAFE 输出 → Orthogroups 表 → 基因 ID 列表 → 功能注释文件 → 家族功能解释
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;最终形成一份包含家族变化、成员组成与注释信息的整合表。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="三输入文件"&gt;三、输入文件
+&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;文件类型&lt;/th&gt;
+&lt;th&gt;来源&lt;/th&gt;
+&lt;th&gt;主要内容&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;Base_change.tab&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;CAFE 输出&lt;/td&gt;
+&lt;td&gt;每个基因家族在各物种的拷贝数变化（扩张/收缩）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;Orthogroups.tsv&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;OrthoFinder（或其他聚类软件）&lt;/td&gt;
+&lt;td&gt;每个 orthogroup 的成员基因列表（按物种划分）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;注释文件（&lt;code&gt;.tsv&lt;/code&gt; / &lt;code&gt;.gff3&lt;/code&gt; / &lt;code&gt;.faa&lt;/code&gt;）&lt;/td&gt;
+&lt;td&gt;各物种功能注释结果&lt;/td&gt;
+&lt;td&gt;每个基因的功能描述、GO、KEGG 等信息&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2 id="四标准分析步骤"&gt;四、标准分析步骤
+&lt;/h2&gt;&lt;h3 id="步骤-1筛选显著变化的家族"&gt;&lt;strong&gt;步骤 1：筛选显著变化的家族&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;从 &lt;code&gt;Base_change.tab&lt;/code&gt; 中选定目标物种；&lt;/li&gt;
+&lt;li&gt;根据数值阈值（如 ΔCopy ≥ 3 为扩张，ΔCopy ≤ -3 为收缩）筛选对应的家族；&lt;/li&gt;
+&lt;li&gt;输出扩张和收缩家族的编号列表。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;建议同时记录阈值与物种，以确保结果可复现。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-2回溯基因家族构成"&gt;&lt;strong&gt;步骤 2：回溯基因家族构成&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;在 &lt;code&gt;Orthogroups.tsv&lt;/code&gt; 文件中查找上述家族编号；&lt;/li&gt;
+&lt;li&gt;提取对应家族的所有成员基因；&lt;/li&gt;
+&lt;li&gt;按物种分列整理，获得“家族–基因ID”对应表；&lt;/li&gt;
+&lt;li&gt;记录每个家族在各物种的成员数量分布。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;若多个物种均有显著变化，可分别整理或联合分析。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-3提取目标物种的基因列表"&gt;&lt;strong&gt;步骤 3：提取目标物种的基因列表&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;从“家族–基因ID表”中提取目标物种的基因ID；&lt;/li&gt;
+&lt;li&gt;生成每个物种的基因列表文件；&lt;/li&gt;
+&lt;li&gt;确保基因命名与注释文件中一致（如含物种前缀或转录本编号）。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-4匹配功能注释信息"&gt;&lt;strong&gt;步骤 4：匹配功能注释信息&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;依据基因列表，在物种的注释结果中查找对应条目；&lt;/li&gt;
+&lt;li&gt;提取功能描述、蛋白结构域、GO、KEGG 等注释信息；&lt;/li&gt;
+&lt;li&gt;整理为“基因–功能”对应表；&lt;/li&gt;
+&lt;li&gt;若注释文件来源多样（如 eggNOG、InterProScan 等），建议合并后统一字段。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-5家族功能整合与生物学解释"&gt;&lt;strong&gt;步骤 5：家族功能整合与生物学解释&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;将注释结果与家族编号对应；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;汇总为以下字段：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Orthogroup&lt;/th&gt;
+&lt;th&gt;变化方向&lt;/th&gt;
+&lt;th&gt;ΔCopy&lt;/th&gt;
+&lt;th&gt;物种&lt;/th&gt;
+&lt;th&gt;成员数&lt;/th&gt;
+&lt;th&gt;基因列表&lt;/th&gt;
+&lt;th&gt;主要功能注释&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;对家族进行分类（如代谢相关、感知相关、转录调控相关等）；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;若家族成员功能一致性较高，可直接推断其主要功能；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;若差异较大，可进一步检查序列同源性或蛋白结构域。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-6可选的后续分析"&gt;&lt;strong&gt;步骤 6：可选的后续分析&lt;/strong&gt;
+&lt;/h3&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;分析方向&lt;/th&gt;
+&lt;th&gt;内容&lt;/th&gt;
+&lt;th&gt;工具建议&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;功能富集&lt;/td&gt;
+&lt;td&gt;基于家族成员的 GO/KEGG 富集分析&lt;/td&gt;
+&lt;td&gt;GOATOOLS、KOBAS、clusterProfiler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;蛋白结构域统计&lt;/td&gt;
+&lt;td&gt;检查扩张家族中结构域分布模式&lt;/td&gt;
+&lt;td&gt;InterProScan、Pfam&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;系统发育可视化&lt;/td&gt;
+&lt;td&gt;在进化树上标注家族变化情况&lt;/td&gt;
+&lt;td&gt;iTOL、ETE3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;关联基因表达&lt;/td&gt;
+&lt;td&gt;检查扩张家族基因的表达特征&lt;/td&gt;
+&lt;td&gt;RNA-seq 数据分析&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2 id="五输出成果"&gt;五、输出成果
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;显著扩张与收缩家族列表；&lt;/li&gt;
+&lt;li&gt;各家族的成员基因清单；&lt;/li&gt;
+&lt;li&gt;基因功能注释表；&lt;/li&gt;
+&lt;li&gt;家族功能整合汇总表；&lt;/li&gt;
+&lt;li&gt;（可选）富集分析与可视化结果。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id="六质量控制与注意事项"&gt;六、质量控制与注意事项
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;编号一致性&lt;/strong&gt;
+确保 CAFE 与 Orthogroups.tsv 的家族编号完全对应；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;注释文件准确性&lt;/strong&gt;
+使用统一来源或经过人工校正的注释信息；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;阈值设定&lt;/strong&gt;
+ΔCopy 的阈值应结合家族大小与树的分支长度调整；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能判定&lt;/strong&gt;
+若功能注释模糊，应辅以 BLAST 比对或结构域信息验证；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据记录&lt;/strong&gt;
+每步操作应记录参数、文件版本和日期，保证溯源性。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id="七流程摘要图"&gt;七、流程摘要图
+&lt;/h2&gt;&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt; 1
+&lt;/span&gt;&lt;span class="lnt"&gt; 2
+&lt;/span&gt;&lt;span class="lnt"&gt; 3
+&lt;/span&gt;&lt;span class="lnt"&gt; 4
+&lt;/span&gt;&lt;span class="lnt"&gt; 5
+&lt;/span&gt;&lt;span class="lnt"&gt; 6
+&lt;/span&gt;&lt;span class="lnt"&gt; 7
+&lt;/span&gt;&lt;span class="lnt"&gt; 8
+&lt;/span&gt;&lt;span class="lnt"&gt; 9
+&lt;/span&gt;&lt;span class="lnt"&gt;10
+&lt;/span&gt;&lt;span class="lnt"&gt;11
+&lt;/span&gt;&lt;span class="lnt"&gt;12
+&lt;/span&gt;&lt;span class="lnt"&gt;13
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CAFE 输出 (Base_change.tab)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;筛选显著扩张/收缩家族
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;回溯 Orthogroups.tsv
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;获取家族成员基因ID
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;匹配注释信息（GFF/FAA/TSV）
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;整合功能表并解释生物学意义
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;（可选）富集与可视化分析
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;hr&gt;</description></item><item><title>动物再生能力与癌症抑制机制的比较基因组学研究</title><link>https://zyyang0124.github.io/p/old-genome/</link><pubDate>Fri, 31 Oct 2025 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/old-genome/</guid><description>&lt;img src="https://zyyang0124.github.io/p/old-genome/1.JPG" alt="Featured image of post 动物再生能力与癌症抑制机制的比较基因组学研究" /&gt;&lt;h1 id="研究计划报告"&gt;研究计划报告
+&lt;/h1&gt;&lt;h2 id="项目名称"&gt;项目名称
+&lt;/h2&gt;&lt;p&gt;“动物再生能力与癌症抑制机制的比较基因组学研究”（英文可拟为 &lt;em&gt;Evolutionary genomics of cancer-suppression and regeneration-linked innovation in animals&lt;/em&gt;）&lt;/p&gt;
+&lt;h2 id="一研究背景与意义"&gt;一、研究背景与意义
+&lt;/h2&gt;&lt;p&gt;癌症作为多细胞生物中几乎普遍存在的一种病理状态，其发生机制主要涉及原癌基因（oncogenes）激活、抑癌基因（tumour suppressor genes, TSGs）失活、DNA 修复机制失效、细胞周期控制破坏及免疫监视失败等。在进化过程中，不同物种为维持体细胞稳态、延长寿命、实现大体型或强再生能力，发展出了一系列防癌机制。&lt;/p&gt;
+&lt;p&gt;例如，经典的 Peto’s paradox 即指出：理论上体型越大、寿命越长的动物其癌症风险应更高，但实际上并非如此，这提示了进化层面上的癌症抑制机制的存在。 ([boddylab.com][1])
+已有研究表明，如象类在其基因组中具有多个 TP53 样基因拷贝，从而增强DNA损伤响应。 ([boddylab.com][1])
+再如，某些寿命极长或再生能力强的物种可能具备更强的细胞修复机制或更严格的增殖／去分化控制机制。相比之下，当前关于“强再生物种”在癌症相关基因演化层面的研究却相对稀少。&lt;/p&gt;
+&lt;p&gt;基于上述现状，本课题拟通过 &lt;strong&gt;比较基因组学&lt;/strong&gt; 方法，系统检视那些具备强再生能力、低癌症报告率或长寿物种中，与癌症相关基因／通路相关的 &lt;strong&gt;基因家族扩张／收缩、选择信号、调控演化&lt;/strong&gt; 等特征。目标在于识别自然界中演化出的“防癌创新机制”，为人类抗癌研究甚至再生医学提供新的思路。&lt;/p&gt;
+&lt;p&gt;此研究在理论上具备显著意义：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;将再生生物学与癌症生物学置于进化基因组学框架下，探讨“再生能力—癌症抑制”两者如何在进化中耦合。&lt;/li&gt;
+&lt;li&gt;有望发现先前未被重视的物种特异防癌机制，从而补充当前以大象、裸鼹鼠、鲸类为主的研究样本。&lt;/li&gt;
+&lt;li&gt;在技术上由于全基因组数据与转录组数据逐年丰富，具备较强可行性；且你已有比较基因组学经验，能够快速切入。&lt;/li&gt;
+&lt;li&gt;从应用层面，若能识别出新机制，有可能为抗癌策略（如增强DNA修复、细胞增殖控制、增强微环境稳定性）或再生医学提供“自然模型”启发。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="二研究目标"&gt;二、研究目标
+&lt;/h2&gt;&lt;p&gt;本课题拟实现以下四个主要目标：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在代表性的“强再生／低癌率／长寿”动物物种中，识别癌症相关基因（包括原癌基因、抑癌基因、DNA修复通路基因、再生相关信号通路基因）在其基因组中的 &lt;strong&gt;基因家族扩张／收缩&lt;/strong&gt;、&lt;strong&gt;编码区序列选择信号&lt;/strong&gt;、&lt;strong&gt;调控元件演化特征&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;将上述物种与其近缘但再生能力较弱、寿命较短或癌症报告较多的对照物种进行比较，评估上述基因/通路在两组之间的差异，从生命周期、再生能力、癌症风险角度建立关联。&lt;/li&gt;
+&lt;li&gt;借助再生过程或伤口修复过程中的 RNA-seq（若可获取）／单细胞转录组数据，验证候选基因在再生/损伤响应阶段中的表达动态，探究其在防癌—再生耦合机制中的潜在角色。&lt;/li&gt;
+&lt;li&gt;基于第1~3目标所得候选基因/机制，筛选若干具备转化潜力的基因/通路，并提出后续功能验证设计方案（如体外细胞模型、动物模型敲入/敲出实验），为人类抗癌研究或再生治疗提供进化医学启示。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id="三研究内容与技术路线"&gt;三、研究内容与技术路线
+&lt;/h2&gt;&lt;h3 id="31-物种选择与数据采集"&gt;3.1 物种选择与数据采集
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;强再生／低癌率／长寿组&lt;/strong&gt;（拟选）例如：两栖再生模型（如 Axolotl &lt;em&gt;Ambystoma mexicanum&lt;/em&gt;）、扁形虫模型（如 Schmidtea mediterranea）、鱼类再生模型、寿命极长或低癌率哺乳动物（如 Naked mole‑rat &lt;em&gt;Heterocephalus glaber&lt;/em&gt;）等。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;对照组&lt;/strong&gt;：每一个强组物种尽可能对应其近缘、再生弱或寿命短、癌症报告较多的物种。例如：近缘鼠类、无再生/再生弱的两栖、短寿鱼类等。&lt;/li&gt;
+&lt;li&gt;收集公开的参考基因组（优选染色体级或高质量assembly）、注释（蛋白编码基因、lncRNA）、RNA-seq/再生时间序列（如公开库）、以及公共癌症相关基因集合（如 COSMIC、OncoKB）作为候选基因库。&lt;/li&gt;
+&lt;li&gt;整理所选物种的生命周期特征（寿命、体型、再生能力、已知癌症发生/报告率）以便后续分析与解释。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="32-同源群构建与基因家族演化分析"&gt;3.2 同源群构建与基因家族演化分析
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;使用工具如 OrthoFinder / OrthoMCL 构建包括上述物种在内的蛋白同源群。&lt;/li&gt;
+&lt;li&gt;借助 CAFE 或类似软件分析基因家族的扩张/收缩情况（结合物种分支长度校正）。重点分析癌症相关基因库中的家族变化。&lt;/li&gt;
+&lt;li&gt;对于显著扩张或收缩的家族，提取成员并进行注释（功能、表达、文献支持）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="33-序列层面演化分析选择性和速率"&gt;3.3 序列层面演化分析：选择性和速率
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;对候选基因家族成员进行多序列比对（如 MAFFT）、构建系统发育树（如 IQ-TREE）以校正比较。&lt;/li&gt;
+&lt;li&gt;使用 PAML（branch-site模型）、HyPhy（如 aBSREL、RELAX）等检测分支/位点层面的正向选择或选择强度改变（内部对照：再生/强防癌组 vs 对照组）。&lt;/li&gt;
+&lt;li&gt;分析演化速率差异（例如 dN/dS 比较）以及是否存在自由适应演化信号。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="34-表达组学整合分析"&gt;3.4 表达组学整合分析
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;获取或生成所选再生物种在不同再生阶段或伤口修复阶段的RNA-seq数据。&lt;/li&gt;
+&lt;li&gt;对候选基因在再生/修复期间的表达变化进行差异表达分析（DESeq2/edgeR）。&lt;/li&gt;
+&lt;li&gt;构建共表达网络（WGCNA）识别与再生和细胞增殖相关模块，查看候选基因在模块中的位置。&lt;/li&gt;
+&lt;li&gt;如可获得单细胞数据，进一步解析候选基因在不同细胞类型/状态（去分化、增殖、分化）中的表达特征。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="35-调控元件与表观遗传分析扩展"&gt;3.5 调控元件与表观遗传分析（扩展）
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;探索候选基因上游顺式调控元件（如增强子、启动子）在不同物种间的演化（可利用 ATAC-seq/ChIP-seq 数据或基因组注释中的保守元件）。&lt;/li&gt;
+&lt;li&gt;检查长非编码RNA (lncRNA) 的演化及其在再生物种中与候选基因的共表达关系。&lt;/li&gt;
+&lt;li&gt;如果数据可得，分析 DNA 甲基化／组蛋白修饰差异与再生/癌症抑制基因表达关联。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="36-候选机制筛选与功能验证准备"&gt;3.6 候选机制筛选与功能验证准备
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;从以上分析中筛选出满足“基因家族扩张（或收缩）+ 在再生物种中显著不同表达 + 有选择性信号”三重条件的优先候选。&lt;/li&gt;
+&lt;li&gt;为每个优候选拟定功能验证方案（如：在细胞系中敲入/敲出该基因、再生模型中RNAi或CRISPR干扰、检测DNA损伤响应、细胞增殖／凋亡／去分化能力变化、肿瘤转化率变化）。&lt;/li&gt;
+&lt;li&gt;预备与实验室合作（再生模型/癌症模型）或商业核心平台对接。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="四预期成果与创新点"&gt;四、预期成果与创新点
+&lt;/h2&gt;&lt;h3 id="创新点"&gt;创新点
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;首次系统关注 &lt;strong&gt;再生能力强的物种&lt;/strong&gt; 在癌症相关基因组演化层面的特征，填补当前研究多集中于大体型/长寿动物的空白。&lt;/li&gt;
+&lt;li&gt;从进化基因组学视角连接“再生—细胞增殖—癌症抑制”三大生物学主题，具有高度交叉学科创新。&lt;/li&gt;
+&lt;li&gt;可能识别出 &lt;strong&gt;新的、防癌相关的基因家族扩张或调控机制&lt;/strong&gt;，这些机制此前在人类癌症研究中可能未被充分关注。&lt;/li&gt;
+&lt;li&gt;为未来的抗癌策略或再生医学提供 &lt;strong&gt;进化启发&lt;/strong&gt;：即“自然已演化出的机制”可作为人类治疗思路的借鉴。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="预期成果"&gt;预期成果
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;发表至少一篇中高影响力的学术论文（如 &lt;em&gt;Scientific Reports&lt;/em&gt; / &lt;em&gt;PNAS&lt;/em&gt; 水平）描述再生/低癌率物种癌症相关基因演化特征。&lt;/li&gt;
+&lt;li&gt;构建一个包含强再生物种及其癌症相关基因演化结果的公共数据库/表格，供后续研究使用。&lt;/li&gt;
+&lt;li&gt;确定若干优先候选基因/通路，并撰写功能验证研究提案，为下一步实验奠基。&lt;/li&gt;
+&lt;li&gt;提出一份进化医学视角下的防癌/再生治疗建议草案（未来方向）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="五研究实施时间表"&gt;五、研究实施时间表
+&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;时间点&lt;/th&gt;
+&lt;th&gt;主要任务内容&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;第1年（0–12月）&lt;/td&gt;
+&lt;td&gt;物种选择、数据收集（基因组、注释、再生RNA-seq等）、生命周期特征整理；构建同源群；进行基因家族扩张/收缩初步分析。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;第2年（12–24月）&lt;/td&gt;
+&lt;td&gt;序列层面演化分析（选择性检测、速率比较）；筛选候选基因家族；如可能，收集再生/伤口修复RNA-seq数据。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;第3年（24–36月）&lt;/td&gt;
+&lt;td&gt;表达组学整合分析（差异表达、模块网络分析）；调控元件初步探索；候选机制筛选。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;第4年（36–48月）&lt;/td&gt;
+&lt;td&gt;功能验证方案设计（并视条件启动）；整理分析结果、撰写并投稿论文；总结研究成果、提出后续转化方向。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2 id="六人员资源与预算概要"&gt;六、人员、资源与预算（概要）
+&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;人员配置&lt;/strong&gt;：博士研究生（你本人，主导分析流程）、可能聘请硕士或研究助理一名，负责编程/注释整合；如涉及实验验证，则需与再生/癌症生物学实验室合作。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;计算资源&lt;/strong&gt;：高性能计算集群（用于基因家族、选择性分析、RNA-seq计算等）；大规模存储空间。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据资源&lt;/strong&gt;：公开基因组、注释、RNA-seq；如需自生成，则预算包括测序费用。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;实验验证（后期）&lt;/strong&gt;：细胞系培养、CRISPR/siRNA试验、再生模型或动物模型（视后期合作情况）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;预算项&lt;/strong&gt;：数据购买/测序费用、计算资源收费、外包分析或合作实验费用、会议差旅、出版费。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;合作建议&lt;/strong&gt;：建议与具备再生生物学或癌症生物学实验能力的课题组合作，以提高实验验证可行性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="七风险分析与应对策略"&gt;七、风险分析与应对策略
+&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;风险一&lt;/strong&gt;：选定物种基因组或注释质量不足，影响分析准确性。
+&lt;em&gt;应对&lt;/em&gt;：优先选择高质量、染色体级别基因组；注释不佳时进行自我注释或转录组辅助注释。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;风险二&lt;/strong&gt;：再生物种的RNA-seq或单细胞数据缺乏，导致表达验证受限。
+&lt;em&gt;应对&lt;/em&gt;：如数据公开缺少，可考虑自己生成或选择已有数据丰富物种；备用方案为以基因组分析为主，表达作为次级支持。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;风险三&lt;/strong&gt;：演化分析信号（如扩张/选择）与实际防癌机制之间难以建立因果关系。
+&lt;em&gt;应对&lt;/em&gt;：谨慎解释—将演化结果作为假设生成，而非直接断言机制；优先筛选可做功能验证的候选基因。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;风险四&lt;/strong&gt;：功能验证实验失败或转化困难。
+&lt;em&gt;应对&lt;/em&gt;：前期筛选阶段严格选择具有文献基础或表达支持的候选；设计实验方案灵活调整（如先体外细胞试验再进动物模型）。&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

@@ -1,0 +1,298 @@
+<!doctype html><html lang=en-us dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content='在比较基因组学分析2：CAFE5 基因家族分析中，我们探讨了基因家族扩张和收缩的分析。\n本博文以 node 7 为例，进行功能富集分析。\n1. 获取目的基因 本部分的关键在于合理选择目标基因与背景基因。其中，目标基因通常指在该演化节点上显著扩张的基因家族所包含的所有物种中的对应基因；背景基因则一般选取该节点所涵盖的全部 Orthogroup，用以构建一个适用于该演化节点的参考基因集。\n1.1 获取 node7 显著扩张的基因 # node7 显著扩张的orthogroupsID\rcat Gamma_change_sig0.05.tsv | cut -f1,8 | awk &#39;$2 > 0&#39; | cut -f1 > node7.expand\r# 提取 node7 显著扩张的基因\rgrep -f node7.expand Orthogroups.tsv | cut -f9 | \\\rsed "s/ /\\\\n/g" | sed "s/\\t/\\\\n/g" | sed "s/,//g" | \\\rsort | uniq > node7.expand.genes\r1.2 选择 node7 的背景基因 # node7中存在基因的orthogroupsID\rawk &#39;NR!=1 && $8>0 {print $0}&#39; Gamma_count.tab | cut -f1 > node7.orthogroups\rgrep -f node7.orthogroups Orthogroups.tsv | cut -f9 | \\\rsed "s/ /\\n/g" | sed "s/\\t/\\n/g" | sed "s/,//g" | sort | uniq > node7.genes\rnode7.genes 和 node7.expand.genes 即为富集分析所需的目标基因 ID。由于涉及无参物种，需自行构建背景基因集的 GO 与 KEGG 功能注释。\n'><title>比较基因组学分析3：节点扩张/收缩基因家族富集分析</title><link rel=canonical href=https://zyyang0124.github.io/p/comparativegemomics3/><link rel=stylesheet href=/scss/style.min.833d6eed45de56f48306bf57268d5b8cdfc8a60e8e7bdc99810464fcd033f7c6.css><meta property='og:title' content="比较基因组学分析3：节点扩张/收缩基因家族富集分析"><meta property='og:description' content='在比较基因组学分析2：CAFE5 基因家族分析中，我们探讨了基因家族扩张和收缩的分析。\n本博文以 node 7 为例，进行功能富集分析。\n1. 获取目的基因 本部分的关键在于合理选择目标基因与背景基因。其中，目标基因通常指在该演化节点上显著扩张的基因家族所包含的所有物种中的对应基因；背景基因则一般选取该节点所涵盖的全部 Orthogroup，用以构建一个适用于该演化节点的参考基因集。\n1.1 获取 node7 显著扩张的基因 # node7 显著扩张的orthogroupsID\rcat Gamma_change_sig0.05.tsv | cut -f1,8 | awk &#39;$2 > 0&#39; | cut -f1 > node7.expand\r# 提取 node7 显著扩张的基因\rgrep -f node7.expand Orthogroups.tsv | cut -f9 | \\\rsed "s/ /\\\\n/g" | sed "s/\\t/\\\\n/g" | sed "s/,//g" | \\\rsort | uniq > node7.expand.genes\r1.2 选择 node7 的背景基因 # node7中存在基因的orthogroupsID\rawk &#39;NR!=1 && $8>0 {print $0}&#39; Gamma_count.tab | cut -f1 > node7.orthogroups\rgrep -f node7.orthogroups Orthogroups.tsv | cut -f9 | \\\rsed "s/ /\\n/g" | sed "s/\\t/\\n/g" | sed "s/,//g" | sort | uniq > node7.genes\rnode7.genes 和 node7.expand.genes 即为富集分析所需的目标基因 ID。由于涉及无参物种，需自行构建背景基因集的 GO 与 KEGG 功能注释。\n'><meta property='og:url' content='https://zyyang0124.github.io/p/comparativegemomics3/'><meta property='og:site_name' content='Yonder Mountain'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='比较基因组学'><meta property='article:tag' content='GO富集'><meta property='article:tag' content='KEGG富集'><meta property='article:tag' content='演化'><meta property='article:published_time' content='2026-01-29T00:00:00+00:00'><meta property='article:modified_time' content='2026-01-29T00:00:00+00:00'><meta property='og:image' content='https://zyyang0124.github.io/p/comparativegemomics3/1.JPG'><meta name=twitter:title content="比较基因组学分析3：节点扩张/收缩基因家族富集分析"><meta name=twitter:description content='在比较基因组学分析2：CAFE5 基因家族分析中，我们探讨了基因家族扩张和收缩的分析。\n本博文以 node 7 为例，进行功能富集分析。\n1. 获取目的基因 本部分的关键在于合理选择目标基因与背景基因。其中，目标基因通常指在该演化节点上显著扩张的基因家族所包含的所有物种中的对应基因；背景基因则一般选取该节点所涵盖的全部 Orthogroup，用以构建一个适用于该演化节点的参考基因集。\n1.1 获取 node7 显著扩张的基因 # node7 显著扩张的orthogroupsID\rcat Gamma_change_sig0.05.tsv | cut -f1,8 | awk &#39;$2 > 0&#39; | cut -f1 > node7.expand\r# 提取 node7 显著扩张的基因\rgrep -f node7.expand Orthogroups.tsv | cut -f9 | \\\rsed "s/ /\\\\n/g" | sed "s/\\t/\\\\n/g" | sed "s/,//g" | \\\rsort | uniq > node7.expand.genes\r1.2 选择 node7 的背景基因 # node7中存在基因的orthogroupsID\rawk &#39;NR!=1 && $8>0 {print $0}&#39; Gamma_count.tab | cut -f1 > node7.orthogroups\rgrep -f node7.orthogroups Orthogroups.tsv | cut -f9 | \\\rsed "s/ /\\n/g" | sed "s/\\t/\\n/g" | sed "s/,//g" | sort | uniq > node7.genes\rnode7.genes 和 node7.expand.genes 即为富集分析所需的目标基因 ID。由于涉及无参物种，需自行构建背景基因集的 GO 与 KEGG 功能注释。\n'><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content='https://zyyang0124.github.io/p/comparativegemomics3/1.JPG'><link rel="shortcut icon" href=/favicon.png></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label="Toggle Menu">
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_hu_c91f24cc69bfea05.png width=300 height=300 class=site-logo loading=lazy alt=Avatar>
+</a><span class=emoji>🍥</span></figure><div class=site-meta><h1 class=site-name><a href=/>Yonder Mountain</a></h1><h2 class=site-description>An evolutionary student.</h2></div></header><ol class=menu-social><li><a href=https://github.com/ZyYang0124 target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>Dark Mode</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">Table of contents</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#1-获取目的基因>1. 获取目的基因</a><ol><li><a href=#11-获取-node7-显著扩张的基因>1.1 获取 node7 显著扩张的基因</a></li><li><a href=#12-选择-node7-的背景基因>1.2 选择 node7 的背景基因</a></li></ol></li><li><a href=#2-构建背景基因的-go-和-kegg-注释>2. 构建背景基因的 GO 和 KEGG 注释</a><ol><li><a href=#21-go-和-kegg-注释>2.1 GO 和 KEGG 注释</a></li><li><a href=#22-go-注释库构建>2.2 GO 注释库构建</a></li><li><a href=#23-kegg-注释库构建>2.3 KEGG 注释库构建</a></li><li><a href=#24-构建背景注释>2.4 构建背景注释</a></li><li><a href=#25-go-和-kegg-富集分析>2.5 GO 和 KEGG 富集分析</a></li></ol></li><li><a href=#3-富集结果可视化>3. 富集结果可视化</a></li></ol></nav></div></section></aside><main class="main full-width"><article class="has-image main-article"><header class=article-header><div class=article-image><a href=/p/comparativegemomics3/><img src=/p/comparativegemomics3/1_hu_6a32bf9521cdd2a6.JPG srcset="/p/comparativegemomics3/1_hu_6a32bf9521cdd2a6.JPG 800w, /p/comparativegemomics3/1_hu_2958b0c173fb765a.JPG 1600w" width=800 height=533 loading=lazy alt="Featured image of post 比较基因组学分析3：节点扩张/收缩基因家族富集分析"></a></div><div class=article-details><header class=article-category><a href=/categories/%E6%BC%94%E5%8C%96%E7%94%9F%E7%89%A9%E5%AD%A6/>演化生物学</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/p/comparativegemomics3/>比较基因组学分析3：节点扩张/收缩基因家族富集分析</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published datetime=2026-01-29T00:00:00Z>Jan 29, 2026</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>6 minute read</time></div></footer></div></header><section class=article-content><p>在<a class=link href=https://zyyang0124.github.io/p/cafe-genefamily1/ target=_blank rel=noopener>比较基因组学分析2：CAFE5 基因家族分析</a>中，我们探讨了基因家族扩张和收缩的分析。</p><p>本博文以 node 7 为例，进行功能富集分析。</p><p><img src=/p/comparativegemomics3/2.png width=1520 height=1197 srcset="/p/comparativegemomics3/2_hu_c46b093daa1433dd.png 480w, /p/comparativegemomics3/2_hu_de05286d2befffe.png 1024w" loading=lazy class=gallery-image data-flex-grow=126 data-flex-basis=304px></p><h2 id=1-获取目的基因>1. 获取目的基因</h2><p>本部分的关键在于合理选择目标基因与背景基因。其中，<strong>目标基因</strong>通常指在该演化节点上显著扩张的基因家族所包含的所有物种中的对应基因；<strong>背景基因</strong>则一般选取该节点所涵盖的全部 Orthogroup，用以构建一个适用于该演化节点的参考基因集。</p><h3 id=11-获取-node7-显著扩张的基因>1.1 获取 node7 显著扩张的基因</h3><pre><code># node7 显著扩张的orthogroupsID
+cat Gamma_change_sig0.05.tsv | cut -f1,8 | awk '$2 &gt; 0' | cut -f1 &gt; node7.expand
+
+# 提取 node7 显著扩张的基因
+grep -f node7.expand Orthogroups.tsv | cut -f9 | \
+sed &quot;s/ /\\n/g&quot; | sed &quot;s/\t/\\n/g&quot; | sed &quot;s/,//g&quot; | \
+sort | uniq &gt; node7.expand.genes
+</code></pre><h3 id=12-选择-node7-的背景基因>1.2 选择 node7 的背景基因</h3><pre><code># node7中存在基因的orthogroupsID
+awk 'NR!=1 &amp;&amp; $8&gt;0 {print $0}' Gamma_count.tab | cut -f1 &gt; node7.orthogroups
+
+grep -f node7.orthogroups Orthogroups.tsv | cut -f9 | \
+sed &quot;s/ /\n/g&quot; | sed &quot;s/\t/\n/g&quot; | sed &quot;s/,//g&quot; | sort | uniq &gt; node7.genes
+</code></pre><p><code>node7.genes</code> 和 <code>node7.expand.genes</code> 即为富集分析所需的目标基因 ID。由于涉及无参物种，需自行构建背景基因集的 GO 与 KEGG 功能注释。</p><h2 id=2-构建背景基因的-go-和-kegg-注释>2. 构建背景基因的 GO 和 KEGG 注释</h2><h3 id=21-go-和-kegg-注释>2.1 GO 和 KEGG 注释</h3><p>使用 eggong 对背景基因进行注释</p><pre><code>#提取背景基因，需要严格注意基因数是否一致
+seqkit grep -f node7.genes \
+    /home/salticidae/disk_computation/zy_gene_family_evo_analysis/1_orthofinder/proteins/siler.faa \
+    &gt; node7.fa
+
+/home/salticidae/install/eggnog-mapper-2.1.12/emapper.py \
+-m diamond -i node7.fa -o node7 --cpu 50
+</code></pre><p>现在，我们得到<code>node7.emapper.annotations</code>文件，<strong>需删除其前三行和所有的 “#”</strong>。</p><h3 id=22-go-注释库构建>2.2 GO 注释库构建</h3><p>首先要获取 <a class=link href=http://purl.obolibrary.org/obo/go/go-basic.obo target=_blank rel=noopener>GO 的基础注释文件</a>。下载完成后，根据分析需求对该文件进行整理与格式修饰，以构建适用于本物种的 GO 注释库。</p><pre><code>wget https://current.geneontology.org/ontology/go-basic.obo
+# 1. 提取GO ID
+grep &quot;^id:&quot; go-basic.obo | awk '{print $2}' &gt; GO.id
+# 2. 提取GO名称
+grep &quot;^name:&quot; go-basic.obo | sed 's/^name: //' &gt; GO.name
+# 3. 提取GO分类
+grep &quot;^namespace:&quot; go-basic.obo | awk '{print $2}' &gt; GO.class
+# 4. 合并三个文件
+paste GO.id GO.name GO.class -d &quot;\t&quot; &gt; GO.library
+</code></pre><h3 id=23-kegg-注释库构建>2.3 KEGG 注释库构建</h3><p>构建 KEGG 注释库需要获取 KEGG 的层级信息文件：下载 <a class=link href=https://www.genome.jp/kegg-bin/get_htext?ko00001 target=_blank rel=noopener>ko00001.json</a>，下载后将其整理为可解析的本地 KEGG 注释文件，以便后续提取 KO 层级关系并用于富集分析。</p><p><img src=/p/comparativegemomics3/3.png width=835 height=799 srcset="/p/comparativegemomics3/3_hu_d0f8f13243f507ca.png 480w, /p/comparativegemomics3/3_hu_3870422f29f9d717.png 1024w" loading=lazy class=gallery-image data-flex-grow=104 data-flex-basis=250px></p><pre><code># nano kegg_parser.R
+
+# kegg_parser.R
+library(jsonlite)
+library(purrr)
+library(RCurl)
+library(dplyr)
+library(stringr)
+
+kegg &lt;- function(json = &quot;ko00001.json&quot;) {
+    # 初始化存储对象
+    pathway2name &lt;- tibble(Pathway = character(), Name = character())
+    ko2pathway &lt;- tibble(Ko = character(), Pathway = character())
+    
+    # 读取 JSON 数据
+    kegg_data &lt;- fromJSON(json)
+    
+    # 遍历 KEGG 层级结构
+    for (a in seq_along(kegg_data[[&quot;children&quot;]][[&quot;children&quot;]])) {
+        A &lt;- kegg_data[[&quot;children&quot;]][[&quot;name&quot;]][[a]]
+        
+        for (b in seq_along(kegg_data[[&quot;children&quot;]][[&quot;children&quot;]][[a]][[&quot;children&quot;]])) {
+            B &lt;- kegg_data[[&quot;children&quot;]][[&quot;children&quot;]][[a]][[&quot;name&quot;]][[b]]
+            
+            for (c in seq_along(kegg_data[[&quot;children&quot;]][[&quot;children&quot;]][[a]][[&quot;children&quot;]][[b]][[&quot;children&quot;]])) {
+                # 提取通路信息
+                pathway_info &lt;- kegg_data[[&quot;children&quot;]][[&quot;children&quot;]][[a]][[&quot;children&quot;]][[b]][[&quot;name&quot;]][[c]]
+                
+                # 提取通路 ID 和名称
+                pathway_id &lt;- str_match(pathway_info, &quot;ko[0-9]{5}&quot;)[1]
+                pathway_name &lt;- str_replace(pathway_info, &quot; \\[PATH:ko[0-9]{5}\\]&quot;, &quot;&quot;) %&gt;%
+                            str_replace(&quot;[0-9]{5} &quot;, &quot;&quot;)
+                
+                # 添加到通路-名称对照表
+                pathway2name &lt;- rbind(pathway2name, 
+                                    tibble(Pathway = pathway_id, Name = pathway_name))
+                
+                # 提取 KO 信息
+                kos_info &lt;- kegg_data[[&quot;children&quot;]][[&quot;children&quot;]][[a]][[&quot;children&quot;]][[b]][[&quot;children&quot;]][[c]][[&quot;name&quot;]]
+                kos &lt;- str_match(kos_info, &quot;K[0-9]*&quot;)[,1]
+                
+                # 添加到 KO-通路对照表
+                ko2pathway &lt;- rbind(ko2pathway, 
+                                tibble(Ko = kos, Pathway = rep(pathway_id, length(kos))))
+            }
+        }
+    }
+    
+    # 重命名列
+    colnames(ko2pathway) &lt;- c(&quot;KO&quot;, &quot;Pathway&quot;)
+    
+    # 保存结果
+    save(pathway2name, ko2pathway, file = &quot;kegg_info.RData&quot;)
+    write.table(pathway2name, &quot;KEGG.library&quot;, sep = &quot;\t&quot;, row.names = F)
+}
+
+# 调用函数
+kegg(json = &quot;ko00001.json&quot;)
+
+# Rscript kegg_parser.R
+</code></pre><h3 id=24-构建背景注释>2.4 构建背景注释</h3><p>背景注释构建的核心在于将本研究中的基因集与前述整理好的 GO 和 KEGG 注释库进行匹配。通过将各 Orthogroup 中的所有基因与其对应的注释信息关联，可生成适用于富集分析的背景基因注释表，为后续的统计检验提供可靠的参考基准。</p><pre><code># nano GO_KEGG_annotation.R
+# 加载必要的库
+library(clusterProfiler)
+library(dplyr)
+library(stringr)
+options(stringsAsFactors = F)
+
+## STEP1: GO注释生成
+# 首先需要读入文件
+egg &lt;- read.delim(&quot;node7.emapper.annotations&quot;, header = T, sep = &quot;\t&quot;)
+egg[egg == &quot;&quot;] &lt;- NA  # 将空行变成NA，方便后续的去除
+
+# 从文件中挑出基因query与eggnog注释信息
+# gene_info &lt;- egg %&gt;% 
+#   dplyr::select(GID = query, GENENAME = eggNOG_OGs) %&gt;% na.omit()
+
+# 挑出query_name与GO注释信息
+gterms &lt;- egg %&gt;% 
+dplyr::select(query, GOs) %&gt;% 
+na.omit()
+
+gene_ids &lt;- egg$query
+eggnog_lines_with_go &lt;- egg$GOs != &quot;&quot;
+eggnog_lines_with_go
+eggnog_annoations_go &lt;- str_split(egg[eggnog_lines_with_go, ]$GOs, &quot;,&quot;)
+gene2go &lt;- data.frame(
+gene = rep(gene_ids[eggnog_lines_with_go],
+            times = sapply(eggnog_annoations_go, length)),
+term = unlist(eggnog_annoations_go)
+)
+names(gene2go) &lt;- c('gene_id', 'ID')
+
+go2name &lt;- read.delim('GO.library', header = FALSE, stringsAsFactors = FALSE)
+names(go2name) &lt;- c('ID', 'Description', 'Ontology')
+go_anno &lt;- merge(gene2go, go2name, by = 'ID', all.x = TRUE)
+
+# 将GO注释信息保存
+save(go_anno, file = &quot;node7_GO.rda&quot;)
+
+## STEP2: KEGG注释生成
+gene2ko &lt;- egg %&gt;% 
+dplyr::select(GID = query, KO = KEGG_ko) %&gt;% 
+na.omit()
+
+pathway2name &lt;- read.delim(&quot;KEGG.library&quot;)
+colnames(pathway2name) &lt;- c(&quot;Pathway&quot;, &quot;Name&quot;)
+
+gene2ko$KO &lt;- str_replace(gene2ko$KO, &quot;ko:&quot;, &quot;&quot;)
+
+gene2pathway &lt;- gene2ko %&gt;% 
+left_join(ko2pathway, by = &quot;KO&quot;) %&gt;%   
+dplyr::select(GID, Pathway) %&gt;% 
+na.omit()
+
+kegg_anno &lt;- merge(gene2pathway, pathway2name, by = 'Pathway', all.x = TRUE)[, c(2, 1, 3)]
+colnames(kegg_anno) &lt;- c('gene_id', 'pathway_id', 'pathway_description')
+save(kegg_anno, file = &quot;node7_KEGG.rda&quot;)
+
+# Rscript GO_KEGG_annotation.R
+</code></pre><h3 id=25-go-和-kegg-富集分析>2.5 GO 和 KEGG 富集分析</h3><p>使用前面构建的 <code>node7_GO.rda</code>、<code>node7_KEGG.rda</code>，以及目标基因文件 <code>node7.expand.genes</code>，即可开展该节点的 GO 与 KEGG 富集分析。后续作图通常只需选择前 10 或前 20 个条目，具体筛选范围可根据实际需求调整。</p><pre><code>## STEP3: GO富集分析
+# 目标基因列表(全部基因)
+gene_select &lt;- read.delim(file = 'node7.expand.genes', stringsAsFactors = FALSE, header = F)$V1
+
+# GO富集分析
+# 默认以所有注释到GO 的基因为背景集，也可通过 universe 参数输入背景集
+# 默认以p&lt;0.05 为标准，Benjamini 方法校正 p 值，q 值阈值 0.2
+# 默认输出top500 富集结果
+# 如果想输出所有富集结果（不考虑 p 值阈值等），将 p、q 等值设置为 1 即可
+# 或者直接在enrichResult 类对象中直接提取需要的结果
+go_rich &lt;- enricher(gene = gene_select,
+                    TERM2GENE = go_anno[c('ID', 'gene_id')],
+                    TERM2NAME = go_anno[c('ID', 'Description')],
+                    pvalueCutoff = 1,
+                    pAdjustMethod = 'BH',
+                    qvalueCutoff = 1)
+
+# 输出默认结果，即根据上述 p 值等阈值筛选后的
+tmp &lt;- merge(go_rich, go2name[c('ID', 'Ontology')], by = 'ID')
+tmp &lt;- tmp[c(10, 1:9)]
+tmp &lt;- tmp[order(tmp$pvalue), ]
+write.table(tmp, 'node7.expand.GO.xls', sep = '\t', row.names = FALSE, quote = FALSE)
+
+## STEP4: KEGG注释
+gene_select &lt;- read.delim('node7.expand.genes', stringsAsFactors = FALSE, header = F)$V1
+
+# KEGG富集分析
+# 默认以所有注释到KEGG 的基因为背景集，也可通过 universe 参数指定其中的一个子集作为背景集
+# 默认以p&lt;0.05 为标准，Benjamini 方法校正 p 值，q 值阈值 0.2
+# 默认输出top500 富集结果
+kegg_rich &lt;- enricher(gene = gene_select,
+                    TERM2GENE = kegg_anno[c('pathway_id', 'gene_id')],
+                    TERM2NAME = kegg_anno[c('pathway_id', 'pathway_description')],
+                    pvalueCutoff = 1,
+                    pAdjustMethod = 'BH',
+                    qvalueCutoff = 1,
+                    maxGSSize = 500)
+
+# 输出默认结果，即根据上述 p 值等阈值筛选后的
+write.table(kegg_rich, 'node7.expand.KEGG.xls', sep = '\t', row.names = FALSE, quote = FALSE)
+</code></pre><p><strong>清理与注意事项（修改后文本）</strong> </p><p>在输出的富集结果文件中，需要注意两类问题并进行处理。第一类是重复条目：有些 GO/KEGG 条目在表中出现多次，但其 geneID 列完全相同。遇到这种情况，应保留一条并删除其余重复条目，以避免后续统计与作图时重复计数。第二类是功能背景不匹配的条目：部分显著富集的条目可能与植物有关，而目标研究对象并非植物，这类条目应按实际生物学意义酌情剔除或标注为“可疑/需人工确认”。</p><h2 id=3-富集结果可视化>3. 富集结果可视化</h2><p>在绘图阶段选取富集结果中排名前 20 的条目（TOP20）进行可视化。通过展示这些显著富集的功能类别，可以直观判断在陆生植物出现这一关键进化节点上，哪些基因功能发生了大规模扩张，从而推断其在适应性进化中的潜在作用。</p><p><strong>GO绘图：</strong></p><pre><code>library(ggplot2)
+pathway = read.delim(&quot;node7.expand.GO.xls&quot;, header = T, sep = &quot;\t&quot;)
+pathway$GeneRatio &lt;- pathway[, 10] / 2434  ## 这个2434是差异基因总数：sort node7.expand.genes | uniq | wc -l
+pathway$log &lt;- -log10(pathway[, 6])
+
+library(dplyr)
+library(ggrepel)
+GO &lt;- arrange(pathway, pathway[, 6])
+GO_dataset &lt;- GO[1:20, ] # 20即为需要可视化的数量
+# 按照PValue从低到高排序[升序]
+GO_dataset$Description &lt;- factor(GO_dataset$Description, levels = unique(rev(GO_dataset$Description)))
+GO_dataset$GeneRatio &lt;- as.numeric(GO_dataset$GeneRatio)
+GO_dataset$GeneRatio
+GO_dataset$log
+
+# 图片背景设定
+mytheme &lt;- theme(axis.title = element_text(face = &quot;bold&quot;, size = 8, colour = 'black'),  # 坐标轴标题
+                axis.text.y = element_text(face = &quot;bold&quot;, size = 6, colour = 'black'),  # 坐标轴标签
+                axis.text.x = element_text(face = &quot;bold&quot;, color = &quot;black&quot;, angle = 0, vjust = 1, size = 8),
+                axis.line = element_line(size = 0.5, colour = 'black'),  # 轴线
+                panel.background = element_rect(color = 'black'),  # 绘图区边框
+                plot.title = element_text(face = &quot;bold&quot;, size = 8, colour = 'black', hjust = 0.8),
+                legend.key = element_blank()  # 关闭图例边框
+)
+
+# 绘制GO气泡图
+p &lt;- ggplot(GO_dataset, aes(x = GeneRatio, y = Description, colour = log, size = Count, shape = Ontology)) + 
+geom_point() + 
+scale_size(range = c(2, 8)) + 
+scale_colour_gradient(low = &quot;#52c2eb&quot;, high = &quot;#EA4F30&quot;) + 
+theme_bw() + 
+labs(x = 'GeneRatio', y = 'GO Terms',  # 自定义x、y轴、标题内容
+    title = 'Enriched GO Terms') + 
+labs(color = expression(-log[10](pvalue))) + 
+theme(legend.title = element_text(size = 8), legend.text = element_text(size = 14)) + 
+theme(axis.title.y = element_text(margin = margin(r = 50)), axis.title.x = element_text(margin = margin(t = 20))) + 
+theme(axis.text.x = element_text(face = &quot;bold&quot;, color = &quot;black&quot;, angle = 0, vjust = 1))
+
+plot &lt;- p + mytheme
+plot
+
+# 保存图片
+ggsave(plot, filename = &quot;node7.pdf&quot;, width = 210, height = 210, units = &quot;mm&quot;, dpi = 300)
+</code></pre><p><strong>KEGG绘图：</strong></p><pre><code>pathway = read.delim(&quot;node7.expand.KEGG.xls&quot;, header = T, sep = &quot;\t&quot;)
+pathway$GeneRatio &lt;- pathway[, 9] / 2434
+pathway$log &lt;- -log10(pathway[, 5])
+
+library(dplyr)
+library(ggrepel)
+KEGG &lt;- arrange(pathway, pathway[, 5])
+KEGG_dataset &lt;- KEGG[1:20, ]
+
+# Pathway列最好转化成因子型，否则作图时ggplot2会将所有Pathway按字母顺序重排序
+# 将Pathway列转化为因子型
+KEGG_dataset$Description &lt;- factor(KEGG_dataset$Description, levels = rev(KEGG_dataset$Description))
+KEGG_dataset$GeneRatio &lt;- as.numeric(KEGG_dataset$GeneRatio)
+KEGG_dataset &lt;- arrange(KEGG_dataset, KEGG_dataset[, 5])
+KEGG_dataset$GeneRatio
+KEGG_dataset$log
+
+# 图片背景设定
+mytheme &lt;- theme(axis.title = element_text(face = &quot;bold&quot;, size = 8, colour = 'black'),  # 坐标轴标题
+                axis.text.y = element_text(face = &quot;bold&quot;, size = 6, colour = 'black'),  # 坐标轴标签
+                axis.text.x = element_text(face = &quot;bold&quot;, color = &quot;black&quot;, angle = 0, vjust = 1, size = 8),
+                axis.line = element_line(size = 0.5, colour = 'black'),  # 轴线
+                panel.background = element_rect(color = 'black'),  # 绘图区边框
+                plot.title = element_text(face = &quot;bold&quot;, size = 8, colour = 'black', hjust = 0.8),
+                legend.key = element_blank()  # 关闭图例边框
+)
+
+# 绘制KEGG气泡图
+p &lt;- ggplot(KEGG_dataset, aes(x = GeneRatio, y = Description, colour = log, size = Count)) + 
+geom_point() + 
+scale_size(range = c(2, 8)) + 
+scale_colour_gradient(low = &quot;#52c2eb&quot;, high = &quot;#EA4F30&quot;) + 
+theme_bw() + 
+labs(x = 'GeneRatio', y = 'KEGG Terms',  # 自定义x、y轴、标题内容
+    title = 'Enriched KEGG Terms') + 
+labs(color = expression(-log[10](pvalue))) + 
+theme(legend.title = element_text(size = 8), legend.text = element_text(size = 14)) + 
+theme(axis.title.y = element_text(margin = margin(r = 50)), axis.title.x = element_text(margin = margin(t = 20))) + 
+theme(axis.text.x = element_text(face = &quot;bold&quot;, color = &quot;black&quot;, angle = 0, vjust = 1))
+
+plot &lt;- p + mytheme
+plot
+
+# 保存图片
+ggsave(plot, filename = &quot;node7_KEGG.pdf&quot;, width = 210, height = 210, units = &quot;mm&quot;, dpi = 300)
+</code></pre><p><strong>本文参考：</strong>
+<a class=link href=https://mp.weixin.qq.com/s/axpsltHquMFSI5l-KkAEZg target=_blank rel=noopener>叨叨陈聊生物</a></p></section><footer class=article-footer><section class=article-tags><a href=/tags/%E6%AF%94%E8%BE%83%E5%9F%BA%E5%9B%A0%E7%BB%84%E5%AD%A6/>比较基因组学</a>
+<a href=/tags/go%E5%AF%8C%E9%9B%86/>GO富集</a>
+<a href=/tags/kegg%E5%AF%8C%E9%9B%86/>KEGG富集</a>
+<a href=/tags/%E6%BC%94%E5%8C%96/>演化</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>Related content</h2><div class=related-content><div class="flex article-list--tile"><article class=has-image><a href=/p/cafe-genefamily1/><div class=article-image><img src=/p/cafe-genefamily1/1.733808f48acb7ec02cc5b40d60b3a5a3_hu_3b7dd1d429594d05.JPG width=250 height=150 loading=lazy alt="Featured image of post 比较基因组学分析2：基因家族的扩张与收缩" data-key=cafe-genefamily1 data-hash="md5-czgI9IrLfsAsxbQNYLOlow=="></div><div class=article-details><h2 class=article-title>比较基因组学分析2：基因家族的扩张与收缩</h2></div></a></article><article class=has-image><a href=/p/cafe-genefamily/><div class=article-image><img src=/p/cafe-genefamily/1.b14c1913c233b18ecb4dd4c6241e67f6_hu_fcdd9b52b477f2a.jpg width=250 height=150 loading=lazy alt="Featured image of post 基于 CAFE 的基因家族回溯与功能注释" data-key=cafe-genefamily data-hash="md5-sUwZE8IzsY7LTdTGJB5n9g=="></div><div class=article-details><h2 class=article-title>基于 CAFE 的基因家族回溯与功能注释</h2></div></a></article><article class=has-image><a href=/p/old-genome/><div class=article-image><img src=/p/old-genome/1.8520446c79c03f5f2b546612e8f33ba3_hu_cac9ba4f75c4dcd4.JPG width=250 height=150 loading=lazy alt="Featured image of post 动物再生能力与癌症抑制机制的比较基因组学研究" data-key=old-genome data-hash="md5-hSBEbHnAP18rVGYS6PM7ow=="></div><div class=article-details><h2 class=article-title>动物再生能力与癌症抑制机制的比较基因组学研究</h2></div></a></article><article class=has-image><a href=/p/synteny-analysis/><div class=article-image><img src=/p/synteny-analysis/cover.c3509550a4a210916e256b06367be3e0_hu_bf8662c33e2a5710.jpg width=250 height=150 loading=lazy alt="Featured image of post 染色体共线性分析" data-key=synteny-analysis data-hash="md5-w1CVUKSiEJFuJWsGNnvj4A=="></div><div class=article-details><h2 class=article-title>染色体共线性分析</h2></div></a></article><article class=has-image><a href=/p/bycatch/><div class=article-image><img src=/p/bycatch/1.991a1aac1fc516e09c103510293b2604_hu_3a5b5b31a041b52d.JPG width=250 height=150 loading=lazy alt="Featured image of post 使用 Mesquite 在基因组组装中搜索 Sanger 测序遗留基因" data-key=bycatch data-hash="md5-mRoarB/FFuCcEDUQKTsmBA=="></div><div class=article-details><h2 class=article-title>使用 Mesquite 在基因组组装中搜索 Sanger 测序遗留基因</h2></div></a></article></div></div></aside><div class=disqus-container><div id=disqus_thread></div><script>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//yondermountain.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><style>.disqus-container{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}</style><script>window.addEventListener("onColorSchemeChange",e=>{typeof DISQUS=="object"&&DISQUS.reset({reload:!0})})</script><footer class=site-footer><section class=copyright>&copy;
+2020 -
+2026 Yonder Mountain</section><section class=powerby>Built with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a><br>Theme <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.33.0>Stack</a></b> designed by <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a></section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.c922af694cc257bf1ecc41c0dd7b0430f9114ec280ccf67cd2c6ad55f5316c4e.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>

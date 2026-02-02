@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>CAFE on Yonder Mountain</title><link>https://zyyang0124.github.io/tags/cafe/</link><description>Recent content in CAFE on Yonder Mountain</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 21 Nov 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://zyyang0124.github.io/tags/cafe/index.xml" rel="self" type="application/rss+xml"/><item><title>比较基因组学分析2：基因家族的扩张与收缩</title><link>https://zyyang0124.github.io/p/cafe-genefamily1/</link><pubDate>Fri, 21 Nov 2025 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/cafe-genefamily1/</guid><description>&lt;img src="https://zyyang0124.github.io/p/cafe-genefamily1/1.JPG" alt="Featured image of post 比较基因组学分析2：基因家族的扩张与收缩" /&gt;&lt;h2 id="1-背景与目的"&gt;1. 背景与目的
+&lt;/h2&gt;&lt;p&gt;基因家族扩张与收缩是基因组进化中的重要现象。通过比较不同物种的基因家族大小，可以揭示基因在进化过程中经历的增减变化，进而理解物种如何适应不同生态环境以及其独特的进化机制。基因家族扩张往往与新功能获得、适应性特征的进化相关；而收缩可能反映某些功能的丧失或选择压力的变化。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="2-cafe5-简介"&gt;2. CAFE5 简介
+&lt;/h2&gt;&lt;p&gt;CAFE5（Computational Analysis of Gene Family Evolution）是一种常用的基因家族进化分析工具，它基于系统发育树和基因家族大小数据，利用最大似然法推测基因家族在各个分支上经历的扩张与收缩事件。该方法不仅可以量化基因家族变化，还可以判断这些变化是否显著，从而帮助研究者识别潜在的功能相关基因家族。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; Orthogroups.GeneCount.tsv 时间树（tree.txt）
+│ │
+└──────────────┬──────────────┘
+▼
+CAFE5 输入处理
+│
+▼
+CAFE5 分析
+│
+▼
+输出 Gamma_* 文件
+│
+▼
+筛选显著扩张/收缩家族
+(Gamma_family_results.txt + Gamma_change.tab)
+│
+▼
+┌───────────────────────────┐
+│ │
+sig_change_tsv.py sig_change_map_to_tree.py
+输出 Gamma_change_sig.tsv 输出 cleaned_tree_sig_only.txt
+│ │
+▼ ▼
+后续统计/功能分析 树上可视化显著家族扩张/收缩
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2 id="3-输入数据准备"&gt;3. 输入数据准备
+&lt;/h2&gt;&lt;p&gt;在使用CAFE5时，至少需要准备两个输入文件：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Orthogroups.GeneCount.tsv：基因家族的计数文件。&lt;/li&gt;
+&lt;li&gt;tree.txt：系统发育树文件，包含物种分化时间。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="31-从-orthofinder-的-orthogroupsgenecounttsv-生成-cafe5-输入文件"&gt;3.1 从 OrthoFinder 的 Orthogroups.GeneCount.tsv 生成 CAFE5 输入文件
+&lt;/h3&gt;&lt;p&gt;Orthogroups.GeneCount.tsv 文件用于记录每个基因家族（Orthogroup）在不同物种中的基因拷贝数，是 CAFE5 分析的核心输入之一。该文件通常来自 OrthoFinder 或 OrthoMCL 等软件，其中每一行对应一个基因家族，每一列对应一个物种的基因数量。为了让 CAFE5 正确读取，我们需要对原始文件进行一些格式检查和整理。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cp ../1_OrthoFinder/Results_Apr18/Orthogroups/Orthogroups.GeneCount.tsv 11.18.cafe
+sed 's/_//g' Orthogroups.GeneCount.tsv | awk 'BEGIN{OFS=&amp;quot;\t&amp;quot;} {$NF=&amp;quot;&amp;quot;; print}' | awk '{print &amp;quot;(null)\t&amp;quot;$$0}' | sed '1s/(null)/Desc/' &amp;gt; cafe.input.tsv
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;生成之后还需要剔除不同物种间拷贝数差异过大的基因家族，否则会报错，可以使用官方提供的脚本：https://github.com/hahnlab/cafe_tutorial/blob/main/python_scripts/cafetutorial_clade_and_size_filter.py&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;python /home/salticidae/install/CAFE5-master/scripts/cafetutorial_clade_and_size_filter.py -i cafe.input.tsv -o gene_family_filter.txt -s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h3 id="32-生成时间树"&gt;3.2 生成时间树
+&lt;/h3&gt;&lt;p&gt;时间树的构建见博客xxx&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="4-运行-cafe5"&gt;4. 运行 cafe5
+&lt;/h2&gt;&lt;p&gt;CAFE5的运行命令如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;cafe5 -i gene_family_filter.txt -t cafe.input.tree -o out_gamma_k1 -c 80 -k 1 -p
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;一般运行 k=1~5，根据其输出的 Base/Gamma_results.txt 文件判断哪个拟合程度最好。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;lnL（似然值）：越小越好。表征模型拟合度，-lnL 越小、模型越好。&lt;/li&gt;
+&lt;li&gt;Alpha：是否存在谱系异质性。Alpha 越大，表示更强的“家族进化速率的变异”；如果 Alpha ≈ 0，则说明 Gamma 模型没必要。&lt;/li&gt;
+&lt;li&gt;失败家族（failure rates &amp;gt;20%）：太多失败说明模型可能不稳定，或某些家族数据异常。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="5-结果解读"&gt;5. 结果解读
+&lt;/h2&gt;&lt;pre&gt;&lt;code&gt;Gamma_asr.tre # 每个基因家族的树文件
+Gamma_branch_probabilities.tab # 每个分支计算的概率
+Gamma_category_likelihoods.txt
+Gamma_change.tab # 每一个基因家族在每个节点的收缩与扩张数目
+Gamma_clade_results.txt # 每个节点基因家族的扩张/收缩数目
+Gamma_count.tab # 每一个基因家族在每个节点的数目
+Gamma_family_likelihoods.txt
+Gamma_family_results.txt # 基因家族变化的p值和是否显著的结果
+Gamma_report.cafe
+Gamma_results.txt # 模型，最终似然值，最终Lambda值等参数信息
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="51-每个节点显著收缩扩张的基因家族数目可视化"&gt;5.1 每个节点显著收缩/扩张的基因家族数目可视化
+&lt;/h3&gt;&lt;p&gt;将显著扩张/收缩的基因家族数目体现在树上，需要三个文件：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Gamma_family_results.txt
+Gamma_clade_results.txt
+Gamma_asr.tre
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;从cafe5的输出文件 Gamma_asr.tre 中获得树文件，写入 id_tree.txt&lt;/p&gt;
+&lt;p&gt;去掉节点多余的内容：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sed -E 's/(&amp;lt;[0-9]+&amp;gt;)[^:,;)]+/\1/g' id_tree.txt &amp;gt; cleaned_tree.txt
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;运行脚本 &lt;code&gt;sig0.05_change_map_to_tree.py&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;从 Gamma_family_results.txt 读入显著家族只保留 &amp;ldquo;y&amp;rdquo; 的基因家族；&lt;/li&gt;
+&lt;li&gt;从 Gamma_change.tab 选取显著家族对应的行；&lt;/li&gt;
+&lt;li&gt;每个节点分别统计：所有显著家族的扩张数，所有显著家族的收缩数；&lt;/li&gt;
+&lt;li&gt;最后将其 map 到树上：写入 cleaned_tree_sig0.05_only.txt&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;pre&gt;&lt;code&gt;cat &amp;gt; sig0.05_change_map_to_tree.py &amp;lt;&amp;lt; 'EOF'
+#!/usr/bin/env python3
+import re
+import pandas as pd
+# -----------------------------
+# 1. 读取显著家族列表
+# -----------------------------
+sig_fams = set()
+with open(&amp;quot;Gamma_family_results.txt&amp;quot;) as f:
+next(f) # 跳过标题
+for line in f:
+parts = line.strip().split()
+if len(parts) &amp;gt;= 3 and parts[2].lower() == &amp;quot;y&amp;quot;:
+sig_fams.add(parts[0])
+print(f&amp;quot;显著家族数: {len(sig_fams)}&amp;quot;)
+# -----------------------------
+# 2. 读取 CAFE family × node 变化矩阵
+# -----------------------------
+df = pd.read_csv(&amp;quot;Gamma_change.tab&amp;quot;, sep=&amp;quot;\t&amp;quot;)
+node_cols = df.columns[1:] # 第一列是 FamilyID
+# 仅显著家族
+df_sig = df[df[&amp;quot;FamilyID&amp;quot;].isin(sig_fams)]
+print(f&amp;quot;显著家族矩阵形状: {df_sig.shape}&amp;quot;)
+# -----------------------------
+# 3. 统计显著扩张/收缩的“家族数量”
+# -----------------------------
+node_change = {}
+for node in node_cols:
+changes = df_sig[node]
+inc = (changes &amp;gt; 0).sum() # 扩张家族数量
+dec = (changes &amp;lt; 0).sum() # 收缩家族数量
+node_change[node] = (int(inc), int(dec))
+print(&amp;quot;每个节点显著扩张/收缩数量统计完毕。&amp;quot;)
+# -----------------------------
+# 4. 读取树
+# -----------------------------
+with open(&amp;quot;cleaned_tree.txt&amp;quot;) as f:
+tree = f.read()
+# -----------------------------
+# 5. 替换树中的节点名称
+# -----------------------------
+for node, (inc, dec) in node_change.items():
+if inc == 0 and dec == 0:
+continue # 两者都不显著则跳过
+new_label = node
+if inc &amp;gt; 0:
+new_label += f&amp;quot;+{inc}&amp;quot;
+if dec &amp;gt; 0:
+new_label += f&amp;quot;-{dec}&amp;quot;
+tree = re.sub(re.escape(node), new_label, tree)
+# -----------------------------
+# 6. 输出
+# -----------------------------
+with open(&amp;quot;cleaned_tree_sig0.05_only.txt&amp;quot;, &amp;quot;w&amp;quot;) as f:
+f.write(tree)
+print(&amp;quot;写入完成：cleaned_tree_sig0.05_only.txt&amp;quot;)
+EOF
+python3 sig0.05_change_map_to_tree.py
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h3 id="52-过滤每个节点基因家族的扩张收缩数目文件中不显著的基因家族"&gt;5.2 过滤每个节点基因家族的扩张/收缩数目文件中不显著的基因家族
+&lt;/h3&gt;&lt;p&gt;运行过滤脚本 &lt;code&gt;sig0.05_change_tsv.py&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;以 Gamma_family_results.txt 里显著家族为准，从 Gamma_change.tab 中去掉不显著家族；&lt;/li&gt;
+&lt;li&gt;输出一个新的 Gamma_change_sig0.05.tsv。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;pre&gt;&lt;code&gt;cat &amp;gt; sig0.05_change_tsv.py &amp;lt;&amp;lt; 'EOF'
+#!/usr/bin/env python3
+import pandas as pd
+# -----------------------------
+# 1. 读取显著家族列表
+# -----------------------------
+sig_fams = set()
+with open(&amp;quot;Gamma_family_results.txt&amp;quot;) as f:
+next(f) # 跳过标题
+for line in f:
+parts = line.strip().split()
+if len(parts) &amp;gt;= 3 and parts[2].lower() == &amp;quot;y&amp;quot;:
+sig_fams.add(parts[0])
+print(f&amp;quot;显著家族数: {len(sig_fams)}&amp;quot;)
+# -----------------------------
+# 2. 读取 Gamma_change.tab
+# -----------------------------
+df = pd.read_csv(&amp;quot;Gamma_change.tab&amp;quot;, sep=&amp;quot;\t&amp;quot;)
+# -----------------------------
+# 3. 筛选显著家族
+# -----------------------------
+df_sig = df[df[&amp;quot;FamilyID&amp;quot;].isin(sig_fams)]
+# -----------------------------
+# 4. 输出新的显著家族矩阵
+# -----------------------------
+output_file = &amp;quot;Gamma_change_sig0.05.tsv&amp;quot;
+df_sig.to_csv(output_file, sep=&amp;quot;\t&amp;quot;, index=False)
+print(f&amp;quot;完成，已生成 {output_file}，仅包含显著家族&amp;quot;)
+EOF
+python3 sig0.05_change_tsv.py
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;</description></item><item><title>基于 CAFE 的基因家族回溯与功能注释</title><link>https://zyyang0124.github.io/p/cafe-genefamily/</link><pubDate>Tue, 04 Nov 2025 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/cafe-genefamily/</guid><description>&lt;img src="https://zyyang0124.github.io/p/cafe-genefamily/1.jpg" alt="Featured image of post 基于 CAFE 的基因家族回溯与功能注释" /&gt;&lt;h1 id="基于-cafe-的基因家族回溯与功能注释标准流程"&gt;基于 CAFE 的基因家族回溯与功能注释标准流程
+&lt;/h1&gt;&lt;pre&gt;&lt;code&gt;代码可参考 :
+https://github.com/ZyYang0124/Myscripts/blob/main/CAFE/extract_cafe_matrix_results.py
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+&lt;h2 id="一流程目标"&gt;一、流程目标
+&lt;/h2&gt;&lt;p&gt;本流程旨在从 &lt;strong&gt;CAFE 输出结果&lt;/strong&gt; 中识别显著扩张或收缩的基因家族，并通过回溯至基因家族构建与功能注释阶段，确定这些家族的成员组成与潜在功能，从而为基因家族进化分析提供生物学解释。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="二总体思路"&gt;二、总体思路
+&lt;/h2&gt;&lt;p&gt;CAFE 仅输出家族编号（如 &lt;code&gt;OG0000001&lt;/code&gt;）及其在各物种中的拷贝变化（ΔCopy），但该编号并不携带生物学意义。
+因此，需要通过以下路径逐级回溯：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CAFE 输出 → Orthogroups 表 → 基因 ID 列表 → 功能注释文件 → 家族功能解释
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;最终形成一份包含家族变化、成员组成与注释信息的整合表。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="三输入文件"&gt;三、输入文件
+&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;文件类型&lt;/th&gt;
+&lt;th&gt;来源&lt;/th&gt;
+&lt;th&gt;主要内容&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;Base_change.tab&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;CAFE 输出&lt;/td&gt;
+&lt;td&gt;每个基因家族在各物种的拷贝数变化（扩张/收缩）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;Orthogroups.tsv&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;OrthoFinder（或其他聚类软件）&lt;/td&gt;
+&lt;td&gt;每个 orthogroup 的成员基因列表（按物种划分）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;注释文件（&lt;code&gt;.tsv&lt;/code&gt; / &lt;code&gt;.gff3&lt;/code&gt; / &lt;code&gt;.faa&lt;/code&gt;）&lt;/td&gt;
+&lt;td&gt;各物种功能注释结果&lt;/td&gt;
+&lt;td&gt;每个基因的功能描述、GO、KEGG 等信息&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2 id="四标准分析步骤"&gt;四、标准分析步骤
+&lt;/h2&gt;&lt;h3 id="步骤-1筛选显著变化的家族"&gt;&lt;strong&gt;步骤 1：筛选显著变化的家族&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;从 &lt;code&gt;Base_change.tab&lt;/code&gt; 中选定目标物种；&lt;/li&gt;
+&lt;li&gt;根据数值阈值（如 ΔCopy ≥ 3 为扩张，ΔCopy ≤ -3 为收缩）筛选对应的家族；&lt;/li&gt;
+&lt;li&gt;输出扩张和收缩家族的编号列表。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;建议同时记录阈值与物种，以确保结果可复现。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-2回溯基因家族构成"&gt;&lt;strong&gt;步骤 2：回溯基因家族构成&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;在 &lt;code&gt;Orthogroups.tsv&lt;/code&gt; 文件中查找上述家族编号；&lt;/li&gt;
+&lt;li&gt;提取对应家族的所有成员基因；&lt;/li&gt;
+&lt;li&gt;按物种分列整理，获得“家族–基因ID”对应表；&lt;/li&gt;
+&lt;li&gt;记录每个家族在各物种的成员数量分布。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;若多个物种均有显著变化，可分别整理或联合分析。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-3提取目标物种的基因列表"&gt;&lt;strong&gt;步骤 3：提取目标物种的基因列表&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;从“家族–基因ID表”中提取目标物种的基因ID；&lt;/li&gt;
+&lt;li&gt;生成每个物种的基因列表文件；&lt;/li&gt;
+&lt;li&gt;确保基因命名与注释文件中一致（如含物种前缀或转录本编号）。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-4匹配功能注释信息"&gt;&lt;strong&gt;步骤 4：匹配功能注释信息&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;依据基因列表，在物种的注释结果中查找对应条目；&lt;/li&gt;
+&lt;li&gt;提取功能描述、蛋白结构域、GO、KEGG 等注释信息；&lt;/li&gt;
+&lt;li&gt;整理为“基因–功能”对应表；&lt;/li&gt;
+&lt;li&gt;若注释文件来源多样（如 eggNOG、InterProScan 等），建议合并后统一字段。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-5家族功能整合与生物学解释"&gt;&lt;strong&gt;步骤 5：家族功能整合与生物学解释&lt;/strong&gt;
+&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;将注释结果与家族编号对应；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;汇总为以下字段：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Orthogroup&lt;/th&gt;
+&lt;th&gt;变化方向&lt;/th&gt;
+&lt;th&gt;ΔCopy&lt;/th&gt;
+&lt;th&gt;物种&lt;/th&gt;
+&lt;th&gt;成员数&lt;/th&gt;
+&lt;th&gt;基因列表&lt;/th&gt;
+&lt;th&gt;主要功能注释&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;对家族进行分类（如代谢相关、感知相关、转录调控相关等）；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;若家族成员功能一致性较高，可直接推断其主要功能；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;若差异较大，可进一步检查序列同源性或蛋白结构域。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3 id="步骤-6可选的后续分析"&gt;&lt;strong&gt;步骤 6：可选的后续分析&lt;/strong&gt;
+&lt;/h3&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;分析方向&lt;/th&gt;
+&lt;th&gt;内容&lt;/th&gt;
+&lt;th&gt;工具建议&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;功能富集&lt;/td&gt;
+&lt;td&gt;基于家族成员的 GO/KEGG 富集分析&lt;/td&gt;
+&lt;td&gt;GOATOOLS、KOBAS、clusterProfiler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;蛋白结构域统计&lt;/td&gt;
+&lt;td&gt;检查扩张家族中结构域分布模式&lt;/td&gt;
+&lt;td&gt;InterProScan、Pfam&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;系统发育可视化&lt;/td&gt;
+&lt;td&gt;在进化树上标注家族变化情况&lt;/td&gt;
+&lt;td&gt;iTOL、ETE3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;关联基因表达&lt;/td&gt;
+&lt;td&gt;检查扩张家族基因的表达特征&lt;/td&gt;
+&lt;td&gt;RNA-seq 数据分析&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2 id="五输出成果"&gt;五、输出成果
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;显著扩张与收缩家族列表；&lt;/li&gt;
+&lt;li&gt;各家族的成员基因清单；&lt;/li&gt;
+&lt;li&gt;基因功能注释表；&lt;/li&gt;
+&lt;li&gt;家族功能整合汇总表；&lt;/li&gt;
+&lt;li&gt;（可选）富集分析与可视化结果。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id="六质量控制与注意事项"&gt;六、质量控制与注意事项
+&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;编号一致性&lt;/strong&gt;
+确保 CAFE 与 Orthogroups.tsv 的家族编号完全对应；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;注释文件准确性&lt;/strong&gt;
+使用统一来源或经过人工校正的注释信息；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;阈值设定&lt;/strong&gt;
+ΔCopy 的阈值应结合家族大小与树的分支长度调整；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;功能判定&lt;/strong&gt;
+若功能注释模糊，应辅以 BLAST 比对或结构域信息验证；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据记录&lt;/strong&gt;
+每步操作应记录参数、文件版本和日期，保证溯源性。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id="七流程摘要图"&gt;七、流程摘要图
+&lt;/h2&gt;&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt; 1
+&lt;/span&gt;&lt;span class="lnt"&gt; 2
+&lt;/span&gt;&lt;span class="lnt"&gt; 3
+&lt;/span&gt;&lt;span class="lnt"&gt; 4
+&lt;/span&gt;&lt;span class="lnt"&gt; 5
+&lt;/span&gt;&lt;span class="lnt"&gt; 6
+&lt;/span&gt;&lt;span class="lnt"&gt; 7
+&lt;/span&gt;&lt;span class="lnt"&gt; 8
+&lt;/span&gt;&lt;span class="lnt"&gt; 9
+&lt;/span&gt;&lt;span class="lnt"&gt;10
+&lt;/span&gt;&lt;span class="lnt"&gt;11
+&lt;/span&gt;&lt;span class="lnt"&gt;12
+&lt;/span&gt;&lt;span class="lnt"&gt;13
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CAFE 输出 (Base_change.tab)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;筛选显著扩张/收缩家族
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;回溯 Orthogroups.tsv
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;获取家族成员基因ID
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;匹配注释信息（GFF/FAA/TSV）
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;整合功能表并解释生物学意义
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ↓
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;（可选）富集与可视化分析
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;hr&gt;</description></item></channel></rss>

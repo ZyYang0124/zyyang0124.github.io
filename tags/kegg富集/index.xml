@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KEGG富集 on Yonder Mountain</title><link>https://zyyang0124.github.io/tags/kegg%E5%AF%8C%E9%9B%86/</link><description>Recent content in KEGG富集 on Yonder Mountain</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 29 Jan 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://zyyang0124.github.io/tags/kegg%E5%AF%8C%E9%9B%86/index.xml" rel="self" type="application/rss+xml"/><item><title>比较基因组学分析3：节点扩张/收缩基因家族富集分析</title><link>https://zyyang0124.github.io/p/comparativegemomics3/</link><pubDate>Thu, 29 Jan 2026 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/comparativegemomics3/</guid><description>&lt;img src="https://zyyang0124.github.io/p/comparativegemomics3/1.JPG" alt="Featured image of post 比较基因组学分析3：节点扩张/收缩基因家族富集分析" /&gt;&lt;p&gt;在&lt;a class="link" href="https://zyyang0124.github.io/p/cafe-genefamily1/" target="_blank" rel="noopener"
+&gt;比较基因组学分析2：CAFE5 基因家族分析&lt;/a&gt;中，我们探讨了基因家族扩张和收缩的分析。&lt;/p&gt;
+&lt;p&gt;本博文以 node 7 为例，进行功能富集分析。&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://zyyang0124.github.io/p/comparativegemomics3/2.png"
+width="1520"
+height="1197"
+srcset="https://zyyang0124.github.io/p/comparativegemomics3/2_hu_c46b093daa1433dd.png 480w, https://zyyang0124.github.io/p/comparativegemomics3/2_hu_de05286d2befffe.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="126"
+data-flex-basis="304px"
+&gt;&lt;/p&gt;
+&lt;h2 id="1-获取目的基因"&gt;1. 获取目的基因
+&lt;/h2&gt;&lt;p&gt;本部分的关键在于合理选择目标基因与背景基因。其中，&lt;strong&gt;目标基因&lt;/strong&gt;通常指在该演化节点上显著扩张的基因家族所包含的所有物种中的对应基因；&lt;strong&gt;背景基因&lt;/strong&gt;则一般选取该节点所涵盖的全部 Orthogroup，用以构建一个适用于该演化节点的参考基因集。&lt;/p&gt;
+&lt;h3 id="11-获取-node7-显著扩张的基因"&gt;1.1 获取 node7 显著扩张的基因
+&lt;/h3&gt;&lt;pre&gt;&lt;code&gt;# node7 显著扩张的orthogroupsID
+cat Gamma_change_sig0.05.tsv | cut -f1,8 | awk '$2 &amp;gt; 0' | cut -f1 &amp;gt; node7.expand
+# 提取 node7 显著扩张的基因
+grep -f node7.expand Orthogroups.tsv | cut -f9 | \
+sed &amp;quot;s/ /\\n/g&amp;quot; | sed &amp;quot;s/\t/\\n/g&amp;quot; | sed &amp;quot;s/,//g&amp;quot; | \
+sort | uniq &amp;gt; node7.expand.genes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="12-选择-node7-的背景基因"&gt;1.2 选择 node7 的背景基因
+&lt;/h3&gt;&lt;pre&gt;&lt;code&gt;# node7中存在基因的orthogroupsID
+awk 'NR!=1 &amp;amp;&amp;amp; $8&amp;gt;0 {print $0}' Gamma_count.tab | cut -f1 &amp;gt; node7.orthogroups
+grep -f node7.orthogroups Orthogroups.tsv | cut -f9 | \
+sed &amp;quot;s/ /\n/g&amp;quot; | sed &amp;quot;s/\t/\n/g&amp;quot; | sed &amp;quot;s/,//g&amp;quot; | sort | uniq &amp;gt; node7.genes
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;node7.genes&lt;/code&gt; 和 &lt;code&gt;node7.expand.genes&lt;/code&gt; 即为富集分析所需的目标基因 ID。由于涉及无参物种，需自行构建背景基因集的 GO 与 KEGG 功能注释。&lt;/p&gt;
+&lt;h2 id="2-构建背景基因的-go-和-kegg-注释"&gt;2. 构建背景基因的 GO 和 KEGG 注释
+&lt;/h2&gt;&lt;h3 id="21-go-和-kegg-注释"&gt;2.1 GO 和 KEGG 注释
+&lt;/h3&gt;&lt;p&gt;使用 eggong 对背景基因进行注释&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#提取背景基因，需要严格注意基因数是否一致
+seqkit grep -f node7.genes \
+/home/salticidae/disk_computation/zy_gene_family_evo_analysis/1_orthofinder/proteins/siler.faa \
+&amp;gt; node7.fa
+/home/salticidae/install/eggnog-mapper-2.1.12/emapper.py \
+-m diamond -i node7.fa -o node7 --cpu 50
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;现在，我们得到&lt;code&gt;node7.emapper.annotations&lt;/code&gt;文件，&lt;strong&gt;需删除其前三行和所有的 “#”&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3 id="22-go-注释库构建"&gt;2.2 GO 注释库构建
+&lt;/h3&gt;&lt;p&gt;首先要获取 &lt;a class="link" href="http://purl.obolibrary.org/obo/go/go-basic.obo" target="_blank" rel="noopener"
+&gt;GO 的基础注释文件&lt;/a&gt;。下载完成后，根据分析需求对该文件进行整理与格式修饰，以构建适用于本物种的 GO 注释库。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;wget https://current.geneontology.org/ontology/go-basic.obo
+# 1. 提取GO ID
+grep &amp;quot;^id:&amp;quot; go-basic.obo | awk '{print $2}' &amp;gt; GO.id
+# 2. 提取GO名称
+grep &amp;quot;^name:&amp;quot; go-basic.obo | sed 's/^name: //' &amp;gt; GO.name
+# 3. 提取GO分类
+grep &amp;quot;^namespace:&amp;quot; go-basic.obo | awk '{print $2}' &amp;gt; GO.class
+# 4. 合并三个文件
+paste GO.id GO.name GO.class -d &amp;quot;\t&amp;quot; &amp;gt; GO.library
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="23-kegg-注释库构建"&gt;2.3 KEGG 注释库构建
+&lt;/h3&gt;&lt;p&gt;构建 KEGG 注释库需要获取 KEGG 的层级信息文件：下载 &lt;a class="link" href="https://www.genome.jp/kegg-bin/get_htext?ko00001" target="_blank" rel="noopener"
+&gt;ko00001.json&lt;/a&gt;，下载后将其整理为可解析的本地 KEGG 注释文件，以便后续提取 KO 层级关系并用于富集分析。&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://zyyang0124.github.io/p/comparativegemomics3/3.png"
+width="835"
+height="799"
+srcset="https://zyyang0124.github.io/p/comparativegemomics3/3_hu_d0f8f13243f507ca.png 480w, https://zyyang0124.github.io/p/comparativegemomics3/3_hu_3870422f29f9d717.png 1024w"
+loading="lazy"
+class="gallery-image"
+data-flex-grow="104"
+data-flex-basis="250px"
+&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# nano kegg_parser.R
+# kegg_parser.R
+library(jsonlite)
+library(purrr)
+library(RCurl)
+library(dplyr)
+library(stringr)
+kegg &amp;lt;- function(json = &amp;quot;ko00001.json&amp;quot;) {
+# 初始化存储对象
+pathway2name &amp;lt;- tibble(Pathway = character(), Name = character())
+ko2pathway &amp;lt;- tibble(Ko = character(), Pathway = character())
+# 读取 JSON 数据
+kegg_data &amp;lt;- fromJSON(json)
+# 遍历 KEGG 层级结构
+for (a in seq_along(kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]])) {
+A &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;name&amp;quot;]][[a]]
+for (b in seq_along(kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]])) {
+B &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;name&amp;quot;]][[b]]
+for (c in seq_along(kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]][[b]][[&amp;quot;children&amp;quot;]])) {
+# 提取通路信息
+pathway_info &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]][[b]][[&amp;quot;name&amp;quot;]][[c]]
+# 提取通路 ID 和名称
+pathway_id &amp;lt;- str_match(pathway_info, &amp;quot;ko[0-9]{5}&amp;quot;)[1]
+pathway_name &amp;lt;- str_replace(pathway_info, &amp;quot; \\[PATH:ko[0-9]{5}\\]&amp;quot;, &amp;quot;&amp;quot;) %&amp;gt;%
+str_replace(&amp;quot;[0-9]{5} &amp;quot;, &amp;quot;&amp;quot;)
+# 添加到通路-名称对照表
+pathway2name &amp;lt;- rbind(pathway2name,
+tibble(Pathway = pathway_id, Name = pathway_name))
+# 提取 KO 信息
+kos_info &amp;lt;- kegg_data[[&amp;quot;children&amp;quot;]][[&amp;quot;children&amp;quot;]][[a]][[&amp;quot;children&amp;quot;]][[b]][[&amp;quot;children&amp;quot;]][[c]][[&amp;quot;name&amp;quot;]]
+kos &amp;lt;- str_match(kos_info, &amp;quot;K[0-9]*&amp;quot;)[,1]
+# 添加到 KO-通路对照表
+ko2pathway &amp;lt;- rbind(ko2pathway,
+tibble(Ko = kos, Pathway = rep(pathway_id, length(kos))))
+}
+}
+}
+# 重命名列
+colnames(ko2pathway) &amp;lt;- c(&amp;quot;KO&amp;quot;, &amp;quot;Pathway&amp;quot;)
+# 保存结果
+save(pathway2name, ko2pathway, file = &amp;quot;kegg_info.RData&amp;quot;)
+write.table(pathway2name, &amp;quot;KEGG.library&amp;quot;, sep = &amp;quot;\t&amp;quot;, row.names = F)
+}
+# 调用函数
+kegg(json = &amp;quot;ko00001.json&amp;quot;)
+# Rscript kegg_parser.R
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="24-构建背景注释"&gt;2.4 构建背景注释
+&lt;/h3&gt;&lt;p&gt;背景注释构建的核心在于将本研究中的基因集与前述整理好的 GO 和 KEGG 注释库进行匹配。通过将各 Orthogroup 中的所有基因与其对应的注释信息关联，可生成适用于富集分析的背景基因注释表，为后续的统计检验提供可靠的参考基准。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# nano GO_KEGG_annotation.R
+# 加载必要的库
+library(clusterProfiler)
+library(dplyr)
+library(stringr)
+options(stringsAsFactors = F)
+## STEP1: GO注释生成
+# 首先需要读入文件
+egg &amp;lt;- read.delim(&amp;quot;node7.emapper.annotations&amp;quot;, header = T, sep = &amp;quot;\t&amp;quot;)
+egg[egg == &amp;quot;&amp;quot;] &amp;lt;- NA # 将空行变成NA，方便后续的去除
+# 从文件中挑出基因query与eggnog注释信息
+# gene_info &amp;lt;- egg %&amp;gt;%
+# dplyr::select(GID = query, GENENAME = eggNOG_OGs) %&amp;gt;% na.omit()
+# 挑出query_name与GO注释信息
+gterms &amp;lt;- egg %&amp;gt;%
+dplyr::select(query, GOs) %&amp;gt;%
+na.omit()
+gene_ids &amp;lt;- egg$query
+eggnog_lines_with_go &amp;lt;- egg$GOs != &amp;quot;&amp;quot;
+eggnog_lines_with_go
+eggnog_annoations_go &amp;lt;- str_split(egg[eggnog_lines_with_go, ]$GOs, &amp;quot;,&amp;quot;)
+gene2go &amp;lt;- data.frame(
+gene = rep(gene_ids[eggnog_lines_with_go],
+times = sapply(eggnog_annoations_go, length)),
+term = unlist(eggnog_annoations_go)
+)
+names(gene2go) &amp;lt;- c('gene_id', 'ID')
+go2name &amp;lt;- read.delim('GO.library', header = FALSE, stringsAsFactors = FALSE)
+names(go2name) &amp;lt;- c('ID', 'Description', 'Ontology')
+go_anno &amp;lt;- merge(gene2go, go2name, by = 'ID', all.x = TRUE)
+# 将GO注释信息保存
+save(go_anno, file = &amp;quot;node7_GO.rda&amp;quot;)
+## STEP2: KEGG注释生成
+gene2ko &amp;lt;- egg %&amp;gt;%
+dplyr::select(GID = query, KO = KEGG_ko) %&amp;gt;%
+na.omit()
+pathway2name &amp;lt;- read.delim(&amp;quot;KEGG.library&amp;quot;)
+colnames(pathway2name) &amp;lt;- c(&amp;quot;Pathway&amp;quot;, &amp;quot;Name&amp;quot;)
+gene2ko$KO &amp;lt;- str_replace(gene2ko$KO, &amp;quot;ko:&amp;quot;, &amp;quot;&amp;quot;)
+gene2pathway &amp;lt;- gene2ko %&amp;gt;%
+left_join(ko2pathway, by = &amp;quot;KO&amp;quot;) %&amp;gt;%
+dplyr::select(GID, Pathway) %&amp;gt;%
+na.omit()
+kegg_anno &amp;lt;- merge(gene2pathway, pathway2name, by = 'Pathway', all.x = TRUE)[, c(2, 1, 3)]
+colnames(kegg_anno) &amp;lt;- c('gene_id', 'pathway_id', 'pathway_description')
+save(kegg_anno, file = &amp;quot;node7_KEGG.rda&amp;quot;)
+# Rscript GO_KEGG_annotation.R
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id="25-go-和-kegg-富集分析"&gt;2.5 GO 和 KEGG 富集分析
+&lt;/h3&gt;&lt;p&gt;使用前面构建的 &lt;code&gt;node7_GO.rda&lt;/code&gt;、&lt;code&gt;node7_KEGG.rda&lt;/code&gt;，以及目标基因文件 &lt;code&gt;node7.expand.genes&lt;/code&gt;，即可开展该节点的 GO 与 KEGG 富集分析。后续作图通常只需选择前 10 或前 20 个条目，具体筛选范围可根据实际需求调整。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;## STEP3: GO富集分析
+# 目标基因列表(全部基因)
+gene_select &amp;lt;- read.delim(file = 'node7.expand.genes', stringsAsFactors = FALSE, header = F)$V1
+# GO富集分析
+# 默认以所有注释到GO 的基因为背景集，也可通过 universe 参数输入背景集
+# 默认以p&amp;lt;0.05 为标准，Benjamini 方法校正 p 值，q 值阈值 0.2
+# 默认输出top500 富集结果
+# 如果想输出所有富集结果（不考虑 p 值阈值等），将 p、q 等值设置为 1 即可
+# 或者直接在enrichResult 类对象中直接提取需要的结果
+go_rich &amp;lt;- enricher(gene = gene_select,
+TERM2GENE = go_anno[c('ID', 'gene_id')],
+TERM2NAME = go_anno[c('ID', 'Description')],
+pvalueCutoff = 1,
+pAdjustMethod = 'BH',
+qvalueCutoff = 1)
+# 输出默认结果，即根据上述 p 值等阈值筛选后的
+tmp &amp;lt;- merge(go_rich, go2name[c('ID', 'Ontology')], by = 'ID')
+tmp &amp;lt;- tmp[c(10, 1:9)]
+tmp &amp;lt;- tmp[order(tmp$pvalue), ]
+write.table(tmp, 'node7.expand.GO.xls', sep = '\t', row.names = FALSE, quote = FALSE)
+## STEP4: KEGG注释
+gene_select &amp;lt;- read.delim('node7.expand.genes', stringsAsFactors = FALSE, header = F)$V1
+# KEGG富集分析
+# 默认以所有注释到KEGG 的基因为背景集，也可通过 universe 参数指定其中的一个子集作为背景集
+# 默认以p&amp;lt;0.05 为标准，Benjamini 方法校正 p 值，q 值阈值 0.2
+# 默认输出top500 富集结果
+kegg_rich &amp;lt;- enricher(gene = gene_select,
+TERM2GENE = kegg_anno[c('pathway_id', 'gene_id')],
+TERM2NAME = kegg_anno[c('pathway_id', 'pathway_description')],
+pvalueCutoff = 1,
+pAdjustMethod = 'BH',
+qvalueCutoff = 1,
+maxGSSize = 500)
+# 输出默认结果，即根据上述 p 值等阈值筛选后的
+write.table(kegg_rich, 'node7.expand.KEGG.xls', sep = '\t', row.names = FALSE, quote = FALSE)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;清理与注意事项（修改后文本）&lt;/strong&gt; &lt;/p&gt;
+&lt;p&gt;在输出的富集结果文件中，需要注意两类问题并进行处理。第一类是重复条目：有些 GO/KEGG 条目在表中出现多次，但其 geneID 列完全相同。遇到这种情况，应保留一条并删除其余重复条目，以避免后续统计与作图时重复计数。第二类是功能背景不匹配的条目：部分显著富集的条目可能与植物有关，而目标研究对象并非植物，这类条目应按实际生物学意义酌情剔除或标注为“可疑/需人工确认”。&lt;/p&gt;
+&lt;h2 id="3-富集结果可视化"&gt;3. 富集结果可视化
+&lt;/h2&gt;&lt;p&gt;在绘图阶段选取富集结果中排名前 20 的条目（TOP20）进行可视化。通过展示这些显著富集的功能类别，可以直观判断在陆生植物出现这一关键进化节点上，哪些基因功能发生了大规模扩张，从而推断其在适应性进化中的潜在作用。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;GO绘图：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;library(ggplot2)
+pathway = read.delim(&amp;quot;node7.expand.GO.xls&amp;quot;, header = T, sep = &amp;quot;\t&amp;quot;)
+pathway$GeneRatio &amp;lt;- pathway[, 10] / 2434 ## 这个2434是差异基因总数：sort node7.expand.genes | uniq | wc -l
+pathway$log &amp;lt;- -log10(pathway[, 6])
+library(dplyr)
+library(ggrepel)
+GO &amp;lt;- arrange(pathway, pathway[, 6])
+GO_dataset &amp;lt;- GO[1:20, ] # 20即为需要可视化的数量
+# 按照PValue从低到高排序[升序]
+GO_dataset$Description &amp;lt;- factor(GO_dataset$Description, levels = unique(rev(GO_dataset$Description)))
+GO_dataset$GeneRatio &amp;lt;- as.numeric(GO_dataset$GeneRatio)
+GO_dataset$GeneRatio
+GO_dataset$log
+# 图片背景设定
+mytheme &amp;lt;- theme(axis.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black'), # 坐标轴标题
+axis.text.y = element_text(face = &amp;quot;bold&amp;quot;, size = 6, colour = 'black'), # 坐标轴标签
+axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1, size = 8),
+axis.line = element_line(size = 0.5, colour = 'black'), # 轴线
+panel.background = element_rect(color = 'black'), # 绘图区边框
+plot.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black', hjust = 0.8),
+legend.key = element_blank() # 关闭图例边框
+)
+# 绘制GO气泡图
+p &amp;lt;- ggplot(GO_dataset, aes(x = GeneRatio, y = Description, colour = log, size = Count, shape = Ontology)) +
+geom_point() +
+scale_size(range = c(2, 8)) +
+scale_colour_gradient(low = &amp;quot;#52c2eb&amp;quot;, high = &amp;quot;#EA4F30&amp;quot;) +
+theme_bw() +
+labs(x = 'GeneRatio', y = 'GO Terms', # 自定义x、y轴、标题内容
+title = 'Enriched GO Terms') +
+labs(color = expression(-log[10](pvalue))) +
+theme(legend.title = element_text(size = 8), legend.text = element_text(size = 14)) +
+theme(axis.title.y = element_text(margin = margin(r = 50)), axis.title.x = element_text(margin = margin(t = 20))) +
+theme(axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1))
+plot &amp;lt;- p + mytheme
+plot
+# 保存图片
+ggsave(plot, filename = &amp;quot;node7.pdf&amp;quot;, width = 210, height = 210, units = &amp;quot;mm&amp;quot;, dpi = 300)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;KEGG绘图：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;pathway = read.delim(&amp;quot;node7.expand.KEGG.xls&amp;quot;, header = T, sep = &amp;quot;\t&amp;quot;)
+pathway$GeneRatio &amp;lt;- pathway[, 9] / 2434
+pathway$log &amp;lt;- -log10(pathway[, 5])
+library(dplyr)
+library(ggrepel)
+KEGG &amp;lt;- arrange(pathway, pathway[, 5])
+KEGG_dataset &amp;lt;- KEGG[1:20, ]
+# Pathway列最好转化成因子型，否则作图时ggplot2会将所有Pathway按字母顺序重排序
+# 将Pathway列转化为因子型
+KEGG_dataset$Description &amp;lt;- factor(KEGG_dataset$Description, levels = rev(KEGG_dataset$Description))
+KEGG_dataset$GeneRatio &amp;lt;- as.numeric(KEGG_dataset$GeneRatio)
+KEGG_dataset &amp;lt;- arrange(KEGG_dataset, KEGG_dataset[, 5])
+KEGG_dataset$GeneRatio
+KEGG_dataset$log
+# 图片背景设定
+mytheme &amp;lt;- theme(axis.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black'), # 坐标轴标题
+axis.text.y = element_text(face = &amp;quot;bold&amp;quot;, size = 6, colour = 'black'), # 坐标轴标签
+axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1, size = 8),
+axis.line = element_line(size = 0.5, colour = 'black'), # 轴线
+panel.background = element_rect(color = 'black'), # 绘图区边框
+plot.title = element_text(face = &amp;quot;bold&amp;quot;, size = 8, colour = 'black', hjust = 0.8),
+legend.key = element_blank() # 关闭图例边框
+)
+# 绘制KEGG气泡图
+p &amp;lt;- ggplot(KEGG_dataset, aes(x = GeneRatio, y = Description, colour = log, size = Count)) +
+geom_point() +
+scale_size(range = c(2, 8)) +
+scale_colour_gradient(low = &amp;quot;#52c2eb&amp;quot;, high = &amp;quot;#EA4F30&amp;quot;) +
+theme_bw() +
+labs(x = 'GeneRatio', y = 'KEGG Terms', # 自定义x、y轴、标题内容
+title = 'Enriched KEGG Terms') +
+labs(color = expression(-log[10](pvalue))) +
+theme(legend.title = element_text(size = 8), legend.text = element_text(size = 14)) +
+theme(axis.title.y = element_text(margin = margin(r = 50)), axis.title.x = element_text(margin = margin(t = 20))) +
+theme(axis.text.x = element_text(face = &amp;quot;bold&amp;quot;, color = &amp;quot;black&amp;quot;, angle = 0, vjust = 1))
+plot &amp;lt;- p + mytheme
+plot
+# 保存图片
+ggsave(plot, filename = &amp;quot;node7_KEGG.pdf&amp;quot;, width = 210, height = 210, units = &amp;quot;mm&amp;quot;, dpi = 300)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;本文参考：&lt;/strong&gt;
+&lt;a class="link" href="https://mp.weixin.qq.com/s/axpsltHquMFSI5l-KkAEZg" target="_blank" rel="noopener"
+&gt;叨叨陈聊生物&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

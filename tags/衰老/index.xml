@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>衰老 on Yonder Mountain</title><link>https://zyyang0124.github.io/tags/%E8%A1%B0%E8%80%81/</link><description>Recent content in 衰老 on Yonder Mountain</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 31 Oct 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://zyyang0124.github.io/tags/%E8%A1%B0%E8%80%81/index.xml" rel="self" type="application/rss+xml"/><item><title>动物再生能力与癌症抑制机制的比较基因组学研究</title><link>https://zyyang0124.github.io/p/old-genome/</link><pubDate>Fri, 31 Oct 2025 00:00:00 +0000</pubDate><guid>https://zyyang0124.github.io/p/old-genome/</guid><description>&lt;img src="https://zyyang0124.github.io/p/old-genome/1.JPG" alt="Featured image of post 动物再生能力与癌症抑制机制的比较基因组学研究" /&gt;&lt;h1 id="研究计划报告"&gt;研究计划报告
+&lt;/h1&gt;&lt;h2 id="项目名称"&gt;项目名称
+&lt;/h2&gt;&lt;p&gt;“动物再生能力与癌症抑制机制的比较基因组学研究”（英文可拟为 &lt;em&gt;Evolutionary genomics of cancer-suppression and regeneration-linked innovation in animals&lt;/em&gt;）&lt;/p&gt;
+&lt;h2 id="一研究背景与意义"&gt;一、研究背景与意义
+&lt;/h2&gt;&lt;p&gt;癌症作为多细胞生物中几乎普遍存在的一种病理状态，其发生机制主要涉及原癌基因（oncogenes）激活、抑癌基因（tumour suppressor genes, TSGs）失活、DNA 修复机制失效、细胞周期控制破坏及免疫监视失败等。在进化过程中，不同物种为维持体细胞稳态、延长寿命、实现大体型或强再生能力，发展出了一系列防癌机制。&lt;/p&gt;
+&lt;p&gt;例如，经典的 Peto’s paradox 即指出：理论上体型越大、寿命越长的动物其癌症风险应更高，但实际上并非如此，这提示了进化层面上的癌症抑制机制的存在。 ([boddylab.com][1])
+已有研究表明，如象类在其基因组中具有多个 TP53 样基因拷贝，从而增强DNA损伤响应。 ([boddylab.com][1])
+再如，某些寿命极长或再生能力强的物种可能具备更强的细胞修复机制或更严格的增殖／去分化控制机制。相比之下，当前关于“强再生物种”在癌症相关基因演化层面的研究却相对稀少。&lt;/p&gt;
+&lt;p&gt;基于上述现状，本课题拟通过 &lt;strong&gt;比较基因组学&lt;/strong&gt; 方法，系统检视那些具备强再生能力、低癌症报告率或长寿物种中，与癌症相关基因／通路相关的 &lt;strong&gt;基因家族扩张／收缩、选择信号、调控演化&lt;/strong&gt; 等特征。目标在于识别自然界中演化出的“防癌创新机制”，为人类抗癌研究甚至再生医学提供新的思路。&lt;/p&gt;
+&lt;p&gt;此研究在理论上具备显著意义：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;将再生生物学与癌症生物学置于进化基因组学框架下，探讨“再生能力—癌症抑制”两者如何在进化中耦合。&lt;/li&gt;
+&lt;li&gt;有望发现先前未被重视的物种特异防癌机制，从而补充当前以大象、裸鼹鼠、鲸类为主的研究样本。&lt;/li&gt;
+&lt;li&gt;在技术上由于全基因组数据与转录组数据逐年丰富，具备较强可行性；且你已有比较基因组学经验，能够快速切入。&lt;/li&gt;
+&lt;li&gt;从应用层面，若能识别出新机制，有可能为抗癌策略（如增强DNA修复、细胞增殖控制、增强微环境稳定性）或再生医学提供“自然模型”启发。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="二研究目标"&gt;二、研究目标
+&lt;/h2&gt;&lt;p&gt;本课题拟实现以下四个主要目标：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在代表性的“强再生／低癌率／长寿”动物物种中，识别癌症相关基因（包括原癌基因、抑癌基因、DNA修复通路基因、再生相关信号通路基因）在其基因组中的 &lt;strong&gt;基因家族扩张／收缩&lt;/strong&gt;、&lt;strong&gt;编码区序列选择信号&lt;/strong&gt;、&lt;strong&gt;调控元件演化特征&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;将上述物种与其近缘但再生能力较弱、寿命较短或癌症报告较多的对照物种进行比较，评估上述基因/通路在两组之间的差异，从生命周期、再生能力、癌症风险角度建立关联。&lt;/li&gt;
+&lt;li&gt;借助再生过程或伤口修复过程中的 RNA-seq（若可获取）／单细胞转录组数据，验证候选基因在再生/损伤响应阶段中的表达动态，探究其在防癌—再生耦合机制中的潜在角色。&lt;/li&gt;
+&lt;li&gt;基于第1~3目标所得候选基因/机制，筛选若干具备转化潜力的基因/通路，并提出后续功能验证设计方案（如体外细胞模型、动物模型敲入/敲出实验），为人类抗癌研究或再生治疗提供进化医学启示。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id="三研究内容与技术路线"&gt;三、研究内容与技术路线
+&lt;/h2&gt;&lt;h3 id="31-物种选择与数据采集"&gt;3.1 物种选择与数据采集
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;强再生／低癌率／长寿组&lt;/strong&gt;（拟选）例如：两栖再生模型（如 Axolotl &lt;em&gt;Ambystoma mexicanum&lt;/em&gt;）、扁形虫模型（如 Schmidtea mediterranea）、鱼类再生模型、寿命极长或低癌率哺乳动物（如 Naked mole‑rat &lt;em&gt;Heterocephalus glaber&lt;/em&gt;）等。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;对照组&lt;/strong&gt;：每一个强组物种尽可能对应其近缘、再生弱或寿命短、癌症报告较多的物种。例如：近缘鼠类、无再生/再生弱的两栖、短寿鱼类等。&lt;/li&gt;
+&lt;li&gt;收集公开的参考基因组（优选染色体级或高质量assembly）、注释（蛋白编码基因、lncRNA）、RNA-seq/再生时间序列（如公开库）、以及公共癌症相关基因集合（如 COSMIC、OncoKB）作为候选基因库。&lt;/li&gt;
+&lt;li&gt;整理所选物种的生命周期特征（寿命、体型、再生能力、已知癌症发生/报告率）以便后续分析与解释。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="32-同源群构建与基因家族演化分析"&gt;3.2 同源群构建与基因家族演化分析
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;使用工具如 OrthoFinder / OrthoMCL 构建包括上述物种在内的蛋白同源群。&lt;/li&gt;
+&lt;li&gt;借助 CAFE 或类似软件分析基因家族的扩张/收缩情况（结合物种分支长度校正）。重点分析癌症相关基因库中的家族变化。&lt;/li&gt;
+&lt;li&gt;对于显著扩张或收缩的家族，提取成员并进行注释（功能、表达、文献支持）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="33-序列层面演化分析选择性和速率"&gt;3.3 序列层面演化分析：选择性和速率
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;对候选基因家族成员进行多序列比对（如 MAFFT）、构建系统发育树（如 IQ-TREE）以校正比较。&lt;/li&gt;
+&lt;li&gt;使用 PAML（branch-site模型）、HyPhy（如 aBSREL、RELAX）等检测分支/位点层面的正向选择或选择强度改变（内部对照：再生/强防癌组 vs 对照组）。&lt;/li&gt;
+&lt;li&gt;分析演化速率差异（例如 dN/dS 比较）以及是否存在自由适应演化信号。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="34-表达组学整合分析"&gt;3.4 表达组学整合分析
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;获取或生成所选再生物种在不同再生阶段或伤口修复阶段的RNA-seq数据。&lt;/li&gt;
+&lt;li&gt;对候选基因在再生/修复期间的表达变化进行差异表达分析（DESeq2/edgeR）。&lt;/li&gt;
+&lt;li&gt;构建共表达网络（WGCNA）识别与再生和细胞增殖相关模块，查看候选基因在模块中的位置。&lt;/li&gt;
+&lt;li&gt;如可获得单细胞数据，进一步解析候选基因在不同细胞类型/状态（去分化、增殖、分化）中的表达特征。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="35-调控元件与表观遗传分析扩展"&gt;3.5 调控元件与表观遗传分析（扩展）
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;探索候选基因上游顺式调控元件（如增强子、启动子）在不同物种间的演化（可利用 ATAC-seq/ChIP-seq 数据或基因组注释中的保守元件）。&lt;/li&gt;
+&lt;li&gt;检查长非编码RNA (lncRNA) 的演化及其在再生物种中与候选基因的共表达关系。&lt;/li&gt;
+&lt;li&gt;如果数据可得，分析 DNA 甲基化／组蛋白修饰差异与再生/癌症抑制基因表达关联。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="36-候选机制筛选与功能验证准备"&gt;3.6 候选机制筛选与功能验证准备
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;从以上分析中筛选出满足“基因家族扩张（或收缩）+ 在再生物种中显著不同表达 + 有选择性信号”三重条件的优先候选。&lt;/li&gt;
+&lt;li&gt;为每个优候选拟定功能验证方案（如：在细胞系中敲入/敲出该基因、再生模型中RNAi或CRISPR干扰、检测DNA损伤响应、细胞增殖／凋亡／去分化能力变化、肿瘤转化率变化）。&lt;/li&gt;
+&lt;li&gt;预备与实验室合作（再生模型/癌症模型）或商业核心平台对接。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="四预期成果与创新点"&gt;四、预期成果与创新点
+&lt;/h2&gt;&lt;h3 id="创新点"&gt;创新点
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;首次系统关注 &lt;strong&gt;再生能力强的物种&lt;/strong&gt; 在癌症相关基因组演化层面的特征，填补当前研究多集中于大体型/长寿动物的空白。&lt;/li&gt;
+&lt;li&gt;从进化基因组学视角连接“再生—细胞增殖—癌症抑制”三大生物学主题，具有高度交叉学科创新。&lt;/li&gt;
+&lt;li&gt;可能识别出 &lt;strong&gt;新的、防癌相关的基因家族扩张或调控机制&lt;/strong&gt;，这些机制此前在人类癌症研究中可能未被充分关注。&lt;/li&gt;
+&lt;li&gt;为未来的抗癌策略或再生医学提供 &lt;strong&gt;进化启发&lt;/strong&gt;：即“自然已演化出的机制”可作为人类治疗思路的借鉴。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="预期成果"&gt;预期成果
+&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;发表至少一篇中高影响力的学术论文（如 &lt;em&gt;Scientific Reports&lt;/em&gt; / &lt;em&gt;PNAS&lt;/em&gt; 水平）描述再生/低癌率物种癌症相关基因演化特征。&lt;/li&gt;
+&lt;li&gt;构建一个包含强再生物种及其癌症相关基因演化结果的公共数据库/表格，供后续研究使用。&lt;/li&gt;
+&lt;li&gt;确定若干优先候选基因/通路，并撰写功能验证研究提案，为下一步实验奠基。&lt;/li&gt;
+&lt;li&gt;提出一份进化医学视角下的防癌/再生治疗建议草案（未来方向）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="五研究实施时间表"&gt;五、研究实施时间表
+&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;时间点&lt;/th&gt;
+&lt;th&gt;主要任务内容&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;第1年（0–12月）&lt;/td&gt;
+&lt;td&gt;物种选择、数据收集（基因组、注释、再生RNA-seq等）、生命周期特征整理；构建同源群；进行基因家族扩张/收缩初步分析。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;第2年（12–24月）&lt;/td&gt;
+&lt;td&gt;序列层面演化分析（选择性检测、速率比较）；筛选候选基因家族；如可能，收集再生/伤口修复RNA-seq数据。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;第3年（24–36月）&lt;/td&gt;
+&lt;td&gt;表达组学整合分析（差异表达、模块网络分析）；调控元件初步探索；候选机制筛选。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;第4年（36–48月）&lt;/td&gt;
+&lt;td&gt;功能验证方案设计（并视条件启动）；整理分析结果、撰写并投稿论文；总结研究成果、提出后续转化方向。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2 id="六人员资源与预算概要"&gt;六、人员、资源与预算（概要）
+&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;人员配置&lt;/strong&gt;：博士研究生（你本人，主导分析流程）、可能聘请硕士或研究助理一名，负责编程/注释整合；如涉及实验验证，则需与再生/癌症生物学实验室合作。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;计算资源&lt;/strong&gt;：高性能计算集群（用于基因家族、选择性分析、RNA-seq计算等）；大规模存储空间。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据资源&lt;/strong&gt;：公开基因组、注释、RNA-seq；如需自生成，则预算包括测序费用。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;实验验证（后期）&lt;/strong&gt;：细胞系培养、CRISPR/siRNA试验、再生模型或动物模型（视后期合作情况）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;预算项&lt;/strong&gt;：数据购买/测序费用、计算资源收费、外包分析或合作实验费用、会议差旅、出版费。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;合作建议&lt;/strong&gt;：建议与具备再生生物学或癌症生物学实验能力的课题组合作，以提高实验验证可行性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id="七风险分析与应对策略"&gt;七、风险分析与应对策略
+&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;风险一&lt;/strong&gt;：选定物种基因组或注释质量不足，影响分析准确性。
+&lt;em&gt;应对&lt;/em&gt;：优先选择高质量、染色体级别基因组；注释不佳时进行自我注释或转录组辅助注释。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;风险二&lt;/strong&gt;：再生物种的RNA-seq或单细胞数据缺乏，导致表达验证受限。
+&lt;em&gt;应对&lt;/em&gt;：如数据公开缺少，可考虑自己生成或选择已有数据丰富物种；备用方案为以基因组分析为主，表达作为次级支持。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;风险三&lt;/strong&gt;：演化分析信号（如扩张/选择）与实际防癌机制之间难以建立因果关系。
+&lt;em&gt;应对&lt;/em&gt;：谨慎解释—将演化结果作为假设生成，而非直接断言机制；优先筛选可做功能验证的候选基因。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;风险四&lt;/strong&gt;：功能验证实验失败或转化困难。
+&lt;em&gt;应对&lt;/em&gt;：前期筛选阶段严格选择具有文献基础或表达支持的候选；设计实验方案灵活调整（如先体外细胞试验再进动物模型）。&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>
